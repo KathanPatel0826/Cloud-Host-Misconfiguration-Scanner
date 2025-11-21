@@ -1,0 +1,1588 @@
+[{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-accessanalyzer_enabled-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "accessanalyzer_enabled",
+    "CheckTitle": "Check if IAM Access Analyzer is enabled",
+    "CheckType": [
+        "IAM"
+    ],
+    "ServiceName": "accessanalyzer",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "IAM Access Analyzer in account 117622437454 is not enabled.",
+    "Severity": "low",
+    "ResourceType": "Other",
+    "ResourceDetails": "",
+    "Description": "Check if IAM Access Analyzer is enabled",
+    "Risk": "AWS IAM Access Analyzer helps you identify the resources in your organization and accounts, such as Amazon S3 buckets or IAM roles, that are shared with an external entity. This lets you identify unintended access to your resources and data, which is a security risk. IAM Access Analyzer uses a form of mathematical analysis called automated reasoning, which applies logic and mathematical inference to determine all possible access paths allowed by a resource policy.",
+    "RelatedUrl": "https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "aws accessanalyzer create-analyzer --analyzer-name <NAME> --type <ACCOUNT|ORGANIZATION>",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "Enable IAM Access Analyzer for all accounts, create analyzer and take action over it is recommendations (IAM Access Analyzer is available at no additional cost).",
+            "Url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html"
+        }
+    },
+    "Compliance": {
+        "CIS-1.5": [
+            "1.20"
+        ],
+        "CIS-2.0": [
+            "1.20"
+        ],
+        "CIS-1.4": [
+            "1.20"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-account_maintain_current_contact_details-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "account_maintain_current_contact_details",
+    "CheckTitle": "Maintain current contact details.",
+    "CheckType": [
+        "IAM"
+    ],
+    "ServiceName": "account",
+    "SubServiceName": "",
+    "Status": "INFO",
+    "StatusExtended": "Manual check: Login to the AWS Console. Choose your account name on the top right of the window -> My Account -> Contact Information.",
+    "Severity": "medium",
+    "ResourceType": "Other",
+    "ResourceDetails": "",
+    "Description": "Maintain current contact details.",
+    "Risk": "Ensure contact email and telephone details for AWS accounts are current and map to more than one individual in your organization. An AWS account supports a number of contact details; and AWS will use these to contact the account owner if activity judged to be in breach of Acceptable Use Policy. If an AWS account is observed to be behaving in a prohibited or suspicious manner; AWS will attempt to contact the account owner by email and phone using the contact details listed. If this is unsuccessful and the account behavior needs urgent mitigation; proactive measures may be taken; including throttling of traffic between the account exhibiting suspicious behavior and the AWS API endpoints and the Internet. This will result in impaired service to and from the account in question.",
+    "RelatedUrl": "",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "No command available.",
+            "Other": "https://docs.bridgecrew.io/docs/iam_18-maintain-contact-details#aws-console"
+        },
+        "Recommendation": {
+            "Text": "Using the Billing and Cost Management console complete contact details.",
+            "Url": "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-update-contact.html"
+        }
+    },
+    "Compliance": {
+        "ENS-RD2022": [
+            "op.ext.7.aws.am.1"
+        ],
+        "CIS-1.5": [
+            "1.1"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC03-BP03",
+            "SEC10-BP01"
+        ],
+        "CIS-2.0": [
+            "1.1"
+        ],
+        "CIS-1.4": [
+            "1.1"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-account_maintain_different_contact_details_to_security_billing_and_operations-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "account_maintain_different_contact_details_to_security_billing_and_operations",
+    "CheckTitle": "Maintain different contact details to security, billing and operations.",
+    "CheckType": [
+        "IAM"
+    ],
+    "ServiceName": "account",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "SECURITY, BILLING and OPERATIONS contacts not found or they are not different between each other and between ROOT contact.",
+    "Severity": "medium",
+    "ResourceType": "Other",
+    "ResourceDetails": "",
+    "Description": "Maintain different contact details to security, billing and operations.",
+    "Risk": "Ensure contact email and telephone details for AWS accounts are current and map to more than one individual in your organization. An AWS account supports a number of contact details; and AWS will use these to contact the account owner if activity judged to be in breach of Acceptable Use Policy. If an AWS account is observed to be behaving in a prohibited or suspicious manner; AWS will attempt to contact the account owner by email and phone using the contact details listed. If this is unsuccessful and the account behavior needs urgent mitigation; proactive measures may be taken; including throttling of traffic between the account exhibiting suspicious behavior and the AWS API endpoints and the Internet. This will result in impaired service to and from the account in question.",
+    "RelatedUrl": "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-update-contact.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "",
+            "Other": "https://docs.bridgecrew.io/docs/iam_18-maintain-contact-details#aws-console"
+        },
+        "Recommendation": {
+            "Text": "Using the Billing and Cost Management console complete contact details.",
+            "Url": "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-update-contact.html"
+        }
+    },
+    "Compliance": {},
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-account_security_contact_information_is_registered-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "account_security_contact_information_is_registered",
+    "CheckTitle": "Ensure security contact information is registered.",
+    "CheckType": [
+        "IAM"
+    ],
+    "ServiceName": "account",
+    "SubServiceName": "",
+    "Status": "INFO",
+    "StatusExtended": "Manual check: Login to the AWS Console. Choose your account name on the top right of the window -> My Account -> Alternate Contacts -> Security Section.",
+    "Severity": "medium",
+    "ResourceType": "Other",
+    "ResourceDetails": "",
+    "Description": "Ensure security contact information is registered.",
+    "Risk": "AWS provides customers with the option of specifying the contact information for accounts security team. It is recommended that this information be provided. Specifying security-specific contact information will help ensure that security advisories sent by AWS reach the team in your organization that is best equipped to respond to them.",
+    "RelatedUrl": "",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "No command available.",
+            "Other": "https://docs.bridgecrew.io/docs/iam_19#aws-console"
+        },
+        "Recommendation": {
+            "Text": "Go to the My Account section and complete alternate contacts.",
+            "Url": "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-update-contact.html"
+        }
+    },
+    "Compliance": {
+        "ENS-RD2022": [
+            "op.ext.7.aws.am.1"
+        ],
+        "CIS-1.5": [
+            "1.2"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC03-BP03",
+            "SEC10-BP01"
+        ],
+        "AWS-Foundational-Security-Best-Practices": [
+            "account",
+            "acm"
+        ],
+        "CIS-2.0": [
+            "1.2"
+        ],
+        "CIS-1.4": [
+            "1.2"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-account_security_questions_are_registered_in_the_aws_account-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "account_security_questions_are_registered_in_the_aws_account",
+    "CheckTitle": "Ensure security questions are registered in the AWS account.",
+    "CheckType": [
+        "IAM"
+    ],
+    "ServiceName": "account",
+    "SubServiceName": "",
+    "Status": "INFO",
+    "StatusExtended": "Manual check: Login to the AWS Console as root. Choose your account name on the top right of the window -> My Account -> Configure Security Challenge Questions.",
+    "Severity": "medium",
+    "ResourceType": "Other",
+    "ResourceDetails": "",
+    "Description": "Ensure security questions are registered in the AWS account.",
+    "Risk": "The AWS support portal allows account owners to establish security questions that can be used to authenticate individuals calling AWS customer service for support. It is recommended that security questions be established. When creating a new AWS account a default super user is automatically created. This account is referred to as the root account. It is recommended that the use of this account be limited and highly controlled. During events in which the root password is no longer accessible or the MFA token associated with root is lost/destroyed it is possible through authentication using secret questions and associated answers to recover root login access.",
+    "RelatedUrl": "",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "No command available.",
+            "Other": "https://docs.bridgecrew.io/docs/iam_15"
+        },
+        "Recommendation": {
+            "Text": "Login as root account and from My Account configure Security questions.",
+            "Url": "https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-security-challenge.html"
+        }
+    },
+    "Compliance": {
+        "ENS-RD2022": [
+            "op.ext.7.aws.am.1"
+        ],
+        "CIS-1.5": [
+            "1.3"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC03-BP03",
+            "SEC10-BP01"
+        ],
+        "CIS-2.0": [
+            "1.3"
+        ],
+        "CIS-1.4": [
+            "1.3"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-athena_workgroup_encryption-117622437454-us-east-2-primary",
+    "Provider": "aws",
+    "CheckID": "athena_workgroup_encryption",
+    "CheckTitle": "Ensure that encryption at rest is enabled for Amazon Athena query results stored in Amazon S3 in order to secure data and meet compliance requirements for data-at-rest encryption.",
+    "CheckType": [
+        "Software and Configuration Checks"
+    ],
+    "ServiceName": "athena",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "Athena WorkGroup primary does not encrypt the query results.",
+    "Severity": "medium",
+    "ResourceType": "WorkGroup",
+    "ResourceDetails": "",
+    "Description": "Ensure that encryption at rest is enabled for Amazon Athena query results stored in Amazon S3 in order to secure data and meet compliance requirements for data-at-rest encryption.",
+    "Risk": "If not enabled sensitive information at rest is not protected.",
+    "RelatedUrl": "https://docs.aws.amazon.com/athena/latest/ug/encryption.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "https://docs.bridgecrew.io/docs/ensure-that-athena-workgroup-is-encrypted#terraform",
+            "CLI": "aws athena update-work-group --region <REGION> --work-group <workgroup_name> --configuration-updates ResultConfigurationUpdates={EncryptionConfiguration={EncryptionOption=SSE_S3|SSE_KMS|CSE_KMS}}",
+            "Other": "https://www.trendmicro.com/cloudoneconformity/knowledge-base/aws/Athena/encryption-enabled.html"
+        },
+        "Recommendation": {
+            "Text": "Enable Encryption. Use a CMK where possible. It will provide additional management and privacy benefits.",
+            "Url": "https://docs.aws.amazon.com/athena/latest/ug/encrypting-query-results-stored-in-s3.html"
+        }
+    },
+    "Compliance": {},
+    "Categories": [
+        "encryption"
+    ],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "primary",
+    "ResourceArn": "arn:aws:athena:us-east-2:117622437454:workgroup/primary",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-athena_workgroup_enforce_configuration-117622437454-us-east-2-primary",
+    "Provider": "aws",
+    "CheckID": "athena_workgroup_enforce_configuration",
+    "CheckTitle": "Ensure that workgroup configuration is enforced so it cannot be overriden by client-side settings.",
+    "CheckType": [
+        "Software and Configuration Checks"
+    ],
+    "ServiceName": "athena",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "Athena WorkGroup primary does not enforce the workgroup configuration, so it can be overridden by the client-side settings.",
+    "Severity": "medium",
+    "ResourceType": "WorkGroup",
+    "ResourceDetails": "",
+    "Description": "Ensure that workgroup configuration is enforced so it cannot be overriden by client-side settings.",
+    "Risk": "If workgroup configuration is not enforced security settings like encryption can be overriden by client-side settings.",
+    "RelatedUrl": "https://docs.aws.amazon.com/athena/latest/ug/workgroups-settings-override.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "https://docs.bridgecrew.io/docs/bc_aws_general_33#cloudformation",
+            "Terraform": "https://docs.bridgecrew.io/docs/bc_aws_general_33#terraform",
+            "CLI": "aws athena update-work-group --region <REGION> --work-group <workgroup_name> --configuration-updates EnforceWorkGroupConfiguration=True",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "Ensure that workgroup configuration is enforced so it cannot be overriden by client-side settings.",
+            "Url": "https://docs.aws.amazon.com/athena/latest/ug/workgroups-settings-override.html"
+        }
+    },
+    "Compliance": {},
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "primary",
+    "ResourceArn": "arn:aws:athena:us-east-2:117622437454:workgroup/primary",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-backup_vaults_exist-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "backup_vaults_exist",
+    "CheckTitle": "Ensure AWS Backup vaults exist",
+    "CheckType": [
+        "Recover",
+        "Resilience",
+        "Backup"
+    ],
+    "ServiceName": "backup",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No Backup Vault exist.",
+    "Severity": "low",
+    "ResourceType": "AwsBackupBackupVault",
+    "ResourceDetails": "",
+    "Description": "This check ensures that AWS Backup vaults exist to provide a secure and durable storage location for backup data.",
+    "Risk": "Without an AWS Backup vault, an organization's critical data may be at risk of being lost in the event of an accidental deletion, system failures, or natural disasters.",
+    "RelatedUrl": "https://docs.aws.amazon.com/aws-backup/latest/devguide/vaults.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "aws backup create-backup-vault --backup-vault-name <backup_vault_name>",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "Use AWS Backup to create backup vaults for your critical data and services.",
+            "Url": "https://docs.aws.amazon.com/aws-backup/latest/devguide/vaults.html"
+        }
+    },
+    "Compliance": {
+        "ENS-RD2022": [
+            "mp.info.6.aws.bcku.1"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudtrail_multi_region_enabled-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudtrail_multi_region_enabled",
+    "CheckTitle": "Ensure CloudTrail is enabled in all regions",
+    "CheckType": [
+        "Software and Configuration Checks",
+        "Industry and Regulatory Standards",
+        "CIS AWS Foundations Benchmark"
+    ],
+    "ServiceName": "cloudtrail",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No CloudTrail trails enabled and logging were found.",
+    "Severity": "high",
+    "ResourceType": "AwsCloudTrailTrail",
+    "ResourceDetails": "",
+    "Description": "Ensure CloudTrail is enabled in all regions",
+    "Risk": "AWS CloudTrail is a web service that records AWS API calls for your account and delivers log files to you. The recorded information includes the identity of the API caller; the time of the API call; the source IP address of the API caller; the request parameters; and the response elements returned by the AWS service.",
+    "RelatedUrl": "",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "https://docs.bridgecrew.io/docs/logging_1#cloudformation",
+            "Terraform": "https://docs.bridgecrew.io/docs/logging_1#terraform",
+            "CLI": "aws cloudtrail create-trail --name <trail_name> --bucket-name <s3_bucket_for_cloudtrail> --is-multi-region-trail aws cloudtrail update-trail --name <trail_name> --is-multi-region-trail ",
+            "Other": "https://docs.bridgecrew.io/docs/logging_1#aws-console"
+        },
+        "Recommendation": {
+            "Text": "Ensure Logging is set to ON on all regions (even if they are not being used at the moment.",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrailconcepts.html#cloudtrail-concepts-management-events"
+        }
+    },
+    "Compliance": {
+        "GxP-EU-Annex-11": [
+            "1-risk-management",
+            "4.2-validation-documentation-change-control"
+        ],
+        "HIPAA": [
+            "164_308_a_1_ii_d",
+            "164_308_a_3_ii_a",
+            "164_308_a_6_ii",
+            "164_312_b",
+            "164_312_e_2_i"
+        ],
+        "ENS-RD2022": [
+            "op.acc.6.r5.aws.iam.1",
+            "op.exp.5.aws.ct.1",
+            "op.exp.8.aws.ct.1",
+            "op.exp.8.aws.ct.6",
+            "op.exp.9.aws.ct.1",
+            "op.mon.1.aws.ct.1"
+        ],
+        "CISA": [
+            "your-systems-3",
+            "your-data-2"
+        ],
+        "GDPR": [
+            "article_25",
+            "article_30"
+        ],
+        "CIS-1.5": [
+            "3.1"
+        ],
+        "SOC2": [
+            "cc_2_1",
+            "cc_7_2",
+            "cc_a_1_2"
+        ],
+        "FedRamp-Moderate-Revision-4": [
+            "ac-2-4",
+            "ac-2-g",
+            "au-2-a-d",
+            "au-3",
+            "au-6-1-3",
+            "au-12-a-c",
+            "ca-7-a-b",
+            "si-4-16",
+            "si-4-2",
+            "si-4-4",
+            "si-4-5"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC04-BP02",
+            "SEC04-BP03"
+        ],
+        "FedRAMP-Low-Revision-4": [
+            "ac-2",
+            "au-2",
+            "ca-7"
+        ],
+        "AWS-Foundational-Security-Best-Practices": [
+            "cloudtrail"
+        ],
+        "NIST-800-53-Revision-4": [
+            "ac_2_4",
+            "ac_2",
+            "au_2",
+            "au_3",
+            "au_12",
+            "cm_2"
+        ],
+        "NIST-CSF-1.1": [
+            "ae_1",
+            "ae_3",
+            "ae_4",
+            "cm_1",
+            "cm_3",
+            "cm_6",
+            "cm_7",
+            "am_3",
+            "ac_6",
+            "ds_5",
+            "ma_2",
+            "pt_1"
+        ],
+        "CIS-2.0": [
+            "3.1"
+        ],
+        "FFIEC": [
+            "d2-ma-ma-b-1",
+            "d2-ma-ma-b-2",
+            "d3-dc-an-b-3",
+            "d3-dc-an-b-4",
+            "d3-dc-an-b-5",
+            "d3-dc-ev-b-1",
+            "d3-dc-ev-b-3",
+            "d3-pc-im-b-3",
+            "d3-pc-im-b-7",
+            "d5-dr-de-b-3"
+        ],
+        "ISO27001-2013": [
+            "A.12.4"
+        ],
+        "RBI-Cyber-Security-Framework": [
+            "annex_i_7_4"
+        ],
+        "NIST-800-171-Revision-2": [
+            "3_1_12",
+            "3_3_1",
+            "3_3_2",
+            "3_3_3",
+            "3_4_1",
+            "3_6_1",
+            "3_6_2",
+            "3_13_1",
+            "3_13_2",
+            "3_14_6",
+            "3_14_7"
+        ],
+        "PCI-3.2.1": [
+            "cloudtrail"
+        ],
+        "CIS-1.4": [
+            "3.1"
+        ],
+        "NIST-800-53-Revision-5": [
+            "ac_2_4",
+            "ac_3_1",
+            "ac_3_10",
+            "ac_4_26",
+            "ac_6_9",
+            "au_2_b",
+            "au_3_1",
+            "au_3_a",
+            "au_3_b",
+            "au_3_c",
+            "au_3_d",
+            "au_3_e",
+            "au_3_f",
+            "au_6_3",
+            "au_6_4",
+            "au_6_6",
+            "au_6_9",
+            "au_8_b",
+            "au_10",
+            "au_12_a",
+            "au_12_c",
+            "au_12_1",
+            "au_12_2",
+            "au_12_3",
+            "au_12_4",
+            "au_14_a",
+            "au_14_b",
+            "au_14_3",
+            "ca_7_b",
+            "cm_5_1_b",
+            "cm_6_a",
+            "cm_9_b",
+            "ia_3_3_b",
+            "ma_4_1_a",
+            "pm_14_a_1",
+            "pm_14_b",
+            "pm_31",
+            "sc_7_9_b",
+            "si_1_1_c",
+            "si_3_8_b",
+            "si_4_2",
+            "si_4_17",
+            "si_4_20",
+            "si_7_8",
+            "si_10_1_c"
+        ],
+        "GxP-21-CFR-Part-11": [
+            "11.10-e",
+            "11.10-k",
+            "11.300-d"
+        ]
+    },
+    "Categories": [
+        "forensics-ready"
+    ],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudtrail_multi_region_enabled_logging_management_events-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudtrail_multi_region_enabled_logging_management_events",
+    "CheckTitle": "Ensure CloudTrail logging management events in All Regions",
+    "CheckType": [
+        "CIS AWS Foundations Benchmark"
+    ],
+    "ServiceName": "cloudtrail",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No trail found with multi-region enabled and logging management events.",
+    "Severity": "low",
+    "ResourceType": "AwsCloudTrailTrail",
+    "ResourceDetails": "",
+    "Description": "Ensure CloudTrail logging management events in All Regions",
+    "Risk": "AWS CloudTrail enables governance, compliance, operational auditing, and risk auditing of your AWS account. To meet FTR requirements, you must have management events enabled for all AWS accounts and in all regions and aggregate these logs into an Amazon Simple Storage Service (Amazon S3) bucket owned by a separate AWS account.",
+    "RelatedUrl": "https://docs.bridgecrew.io/docs/logging_14",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "https://docs.bridgecrew.io/docs/logging_14#terraform",
+            "CLI": "aws cloudtrail update-trail --name <trail_name> --is-multi-region-trail",
+            "Other": "https://docs.bridgecrew.io/docs/logging_14"
+        },
+        "Recommendation": {
+            "Text": "Enable CloudTrail logging management events in All Regions",
+            "Url": "https://docs.bridgecrew.io/docs/logging_14"
+        }
+    },
+    "Compliance": {},
+    "Categories": [
+        "forensics-ready"
+    ],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudtrail_s3_dataevents_read_enabled-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudtrail_s3_dataevents_read_enabled",
+    "CheckTitle": "Check if S3 buckets have Object-level logging for read events is enabled in CloudTrail.",
+    "CheckType": [
+        "Logging and Monitoring"
+    ],
+    "ServiceName": "cloudtrail",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No CloudTrail trails have a data event to record all S3 object-level API operations.",
+    "Severity": "low",
+    "ResourceType": "AwsS3Bucket",
+    "ResourceDetails": "",
+    "Description": "Ensure that all your AWS CloudTrail trails are configured to log Data events in order to record S3 object-level API operations, such as GetObject, DeleteObject and PutObject, for individual S3 buckets or for all current and future S3 buckets provisioned in your AWS account.",
+    "Risk": "If logs are not enabled, monitoring of service use and threat analysis is not possible.",
+    "RelatedUrl": "",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "aws cloudtrail put-event-selectors --trail-name <YOUR_TRAIL_NAME_HERE> --event-selectors '[{ 'ReadWriteType': 'ReadOnly', 'IncludeManagementEvents':true, 'DataResources': [{ 'Type': 'AWS::S3::Object', 'Values': ['arn:aws:s3'] }] }]'",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "Enable logs. Create an S3 lifecycle policy. Define use cases, metrics and automated responses where applicable.",
+            "Url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-cloudtrail-logging-for-s3.html"
+        }
+    },
+    "Compliance": {
+        "GxP-EU-Annex-11": [
+            "8.2-printouts-data-changes",
+            "9-audit-trails",
+            "12.4-security-audit-trail"
+        ],
+        "HIPAA": [
+            "164_308_a_1_ii_d",
+            "164_308_a_3_ii_a",
+            "164_308_a_6_ii",
+            "164_312_a_2_i",
+            "164_312_b",
+            "164_312_e_2_i"
+        ],
+        "ENS-RD2022": [
+            "op.exp.8.r1.aws.ct.2",
+            "op.exp.8.r1.aws.ct.4"
+        ],
+        "CISA": [
+            "your-systems-3",
+            "your-data-2"
+        ],
+        "GDPR": [
+            "article_30"
+        ],
+        "CIS-1.5": [
+            "3.11"
+        ],
+        "SOC2": [
+            "cc_2_1",
+            "cc_7_2"
+        ],
+        "FedRamp-Moderate-Revision-4": [
+            "ac-2-4",
+            "ac-2-g",
+            "au-2-a-d",
+            "au-3",
+            "au-6-1-3",
+            "au-12-a-c",
+            "ca-7-a-b",
+            "si-4-16",
+            "si-4-2",
+            "si-4-4",
+            "si-4-5"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC04-BP01"
+        ],
+        "FedRAMP-Low-Revision-4": [
+            "ac-2",
+            "au-2",
+            "ca-7"
+        ],
+        "NIST-800-53-Revision-4": [
+            "ac_2",
+            "au_2",
+            "au_3",
+            "au_12"
+        ],
+        "NIST-CSF-1.1": [
+            "ae_3",
+            "ae_4",
+            "cm_1",
+            "cm_3",
+            "cm_6",
+            "cm_7",
+            "ds_5"
+        ],
+        "CIS-2.0": [
+            "3.11"
+        ],
+        "FFIEC": [
+            "d2-ma-ma-b-1",
+            "d2-ma-ma-b-2",
+            "d3-dc-an-b-3",
+            "d3-dc-an-b-4",
+            "d3-dc-ev-b-1",
+            "d5-dr-de-b-3"
+        ],
+        "RBI-Cyber-Security-Framework": [
+            "annex_i_7_4"
+        ],
+        "NIST-800-171-Revision-2": [
+            "3_1_12",
+            "3_3_1",
+            "3_3_2",
+            "3_3_3",
+            "3_13_1",
+            "3_14_6",
+            "3_14_7"
+        ],
+        "CIS-1.4": [
+            "3.11"
+        ],
+        "NIST-800-53-Revision-5": [
+            "ac_2_4",
+            "ac_3_1",
+            "ac_3_10",
+            "ac_4_26",
+            "ac_6_9",
+            "au_2_b",
+            "au_3_a",
+            "au_3_b",
+            "au_3_c",
+            "au_3_d",
+            "au_3_e",
+            "au_3_f",
+            "au_6_3",
+            "au_6_4",
+            "au_6_6",
+            "au_6_9",
+            "au_8_b",
+            "au_10",
+            "au_12_a",
+            "au_12_c",
+            "au_12_1",
+            "au_12_2",
+            "au_12_3",
+            "au_12_4",
+            "au_14_a",
+            "au_14_b",
+            "au_14_3",
+            "ca_7_b",
+            "cm_5_1_b",
+            "cm_6_a",
+            "cm_9_b",
+            "ia_3_3_b",
+            "ma_4_1_a",
+            "pm_14_a_1",
+            "pm_14_b",
+            "pm_31",
+            "sc_7_9_b",
+            "si_1_1_c",
+            "si_3_8_b",
+            "si_4_2",
+            "si_4_17",
+            "si_4_20",
+            "si_7_8",
+            "si_10_1_c"
+        ],
+        "GxP-21-CFR-Part-11": [
+            "11.10-e",
+            "11.10-k"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudtrail_s3_dataevents_write_enabled-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudtrail_s3_dataevents_write_enabled",
+    "CheckTitle": "Check if S3 buckets have Object-level logging for write events is enabled in CloudTrail.",
+    "CheckType": [
+        "Logging and Monitoring"
+    ],
+    "ServiceName": "cloudtrail",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No CloudTrail trails have a data event to record all S3 object-level API operations.",
+    "Severity": "low",
+    "ResourceType": "AwsS3Bucket",
+    "ResourceDetails": "",
+    "Description": "Ensure that all your AWS CloudTrail trails are configured to log Data events in order to record S3 object-level API operations, such as GetObject, DeleteObject and PutObject, for individual S3 buckets or for all current and future S3 buckets provisioned in your AWS account.",
+    "Risk": "If logs are not enabled, monitoring of service use and threat analysis is not possible.",
+    "RelatedUrl": "",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "",
+            "CLI": "aws cloudtrail put-event-selectors --trail-name <YOUR_TRAIL_NAME_HERE> --event-selectors '[{ 'ReadWriteType': 'WriteOnly', 'IncludeManagementEvents':true, 'DataResources': [{ 'Type': 'AWS::S3::Object', 'Values': ['arn:aws:s3'] }] }]'",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "Enable logs. Create an S3 lifecycle policy. Define use cases, metrics and automated responses where applicable.",
+            "Url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-cloudtrail-logging-for-s3.html"
+        }
+    },
+    "Compliance": {
+        "GxP-EU-Annex-11": [
+            "8.2-printouts-data-changes",
+            "9-audit-trails",
+            "12.4-security-audit-trail"
+        ],
+        "HIPAA": [
+            "164_308_a_1_ii_d",
+            "164_308_a_3_ii_a",
+            "164_308_a_6_ii",
+            "164_312_a_2_i",
+            "164_312_b",
+            "164_312_e_2_i"
+        ],
+        "ENS-RD2022": [
+            "op.exp.8.aws.ct.4",
+            "op.exp.8.r1.aws.ct.2",
+            "op.exp.8.r1.aws.ct.4"
+        ],
+        "CISA": [
+            "your-systems-3",
+            "your-data-2"
+        ],
+        "GDPR": [
+            "article_30"
+        ],
+        "CIS-1.5": [
+            "3.10"
+        ],
+        "SOC2": [
+            "cc_2_1",
+            "cc_7_2"
+        ],
+        "FedRamp-Moderate-Revision-4": [
+            "ac-2-4",
+            "ac-2-g",
+            "au-2-a-d",
+            "au-3",
+            "au-6-1-3",
+            "au-12-a-c",
+            "ca-7-a-b",
+            "si-4-16",
+            "si-4-2",
+            "si-4-4",
+            "si-4-5"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC04-BP01"
+        ],
+        "FedRAMP-Low-Revision-4": [
+            "ac-2",
+            "au-2",
+            "ca-7"
+        ],
+        "NIST-800-53-Revision-4": [
+            "ac_2",
+            "au_2",
+            "au_3",
+            "au_12"
+        ],
+        "NIST-CSF-1.1": [
+            "ae_3",
+            "ae_4",
+            "cm_1",
+            "cm_3",
+            "cm_6",
+            "cm_7",
+            "ds_5"
+        ],
+        "CIS-2.0": [
+            "3.10"
+        ],
+        "FFIEC": [
+            "d2-ma-ma-b-1",
+            "d2-ma-ma-b-2",
+            "d3-dc-an-b-3",
+            "d3-dc-an-b-4",
+            "d3-dc-ev-b-1",
+            "d5-dr-de-b-3"
+        ],
+        "RBI-Cyber-Security-Framework": [
+            "annex_i_7_4"
+        ],
+        "NIST-800-171-Revision-2": [
+            "3_1_12",
+            "3_3_1",
+            "3_3_2",
+            "3_3_3",
+            "3_13_1",
+            "3_14_6",
+            "3_14_7"
+        ],
+        "CIS-1.4": [
+            "3.10"
+        ],
+        "NIST-800-53-Revision-5": [
+            "ac_2_4",
+            "ac_3_1",
+            "ac_3_10",
+            "ac_4_26",
+            "ac_6_9",
+            "au_2_b",
+            "au_3_a",
+            "au_3_b",
+            "au_3_c",
+            "au_3_d",
+            "au_3_e",
+            "au_3_f",
+            "au_6_3",
+            "au_6_4",
+            "au_6_6",
+            "au_6_9",
+            "au_8_b",
+            "au_10",
+            "au_12_a",
+            "au_12_c",
+            "au_12_1",
+            "au_12_2",
+            "au_12_3",
+            "au_12_4",
+            "au_14_a",
+            "au_14_b",
+            "au_14_3",
+            "ca_7_b",
+            "cm_5_1_b",
+            "cm_6_a",
+            "cm_9_b",
+            "ia_3_3_b",
+            "ma_4_1_a",
+            "pm_14_a_1",
+            "pm_14_b",
+            "pm_31",
+            "sc_7_9_b",
+            "si_1_1_c",
+            "si_3_8_b",
+            "si_4_2",
+            "si_4_17",
+            "si_4_20",
+            "si_7_8",
+            "si_10_1_c"
+        ],
+        "GxP-21-CFR-Part-11": [
+            "11.10-e",
+            "11.10-k"
+        ]
+    },
+    "Categories": [
+        "forensics-ready"
+    ],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudwatch_changes_to_network_acls_alarm_configured-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudwatch_changes_to_network_acls_alarm_configured",
+    "CheckTitle": "Ensure a log metric filter and alarm exist for changes to Network Access Control Lists (NACL).",
+    "CheckType": [
+        "Software and Configuration Checks/Industry and Regulatory Standards/CIS AWS Foundations Benchmark"
+    ],
+    "ServiceName": "cloudwatch",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No CloudWatch log groups found with metric filters or alarms associated.",
+    "Severity": "medium",
+    "ResourceType": "AwsCloudTrailTrail",
+    "ResourceDetails": "",
+    "Description": "Ensure a log metric filter and alarm exist for changes to Network Access Control Lists (NACL).",
+    "Risk": "Monitoring unauthorized API calls will help reveal application errors and may reduce time to detect malicious activity.",
+    "RelatedUrl": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "https://docs.bridgecrew.io/docs/monitoring_11#fix---buildtime",
+            "CLI": "https://docs.bridgecrew.io/docs/monitoring_11#procedure",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "It is recommended that a metric filter and alarm be established for unauthorized requests.",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html"
+        }
+    },
+    "Compliance": {
+        "HIPAA": [
+            "164_308_a_6_i"
+        ],
+        "MITRE-ATTACK": [
+            "T1496"
+        ],
+        "CIS-1.5": [
+            "4.11"
+        ],
+        "SOC2": [
+            "cc_7_2",
+            "cc_7_3",
+            "cc_7_4"
+        ],
+        "FedRamp-Moderate-Revision-4": [
+            "ac-2-4",
+            "au-6-1-3",
+            "au-7-1",
+            "ca-7-a-b",
+            "ir-4-1",
+            "ir-4-1",
+            "si-4-2",
+            "si-4-4",
+            "si-4-5",
+            "si-4-a-b-c"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC04-BP04"
+        ],
+        "FedRAMP-Low-Revision-4": [
+            "ac-2",
+            "ca-7",
+            "ir-4"
+        ],
+        "NIST-800-53-Revision-4": [
+            "ac_2_4",
+            "au_6_1",
+            "au_6_3",
+            "au_7_1",
+            "ca_7",
+            "ir_4_1",
+            "si_4_2",
+            "si_4_4",
+            "si_4_5",
+            "si_4"
+        ],
+        "NIST-CSF-1.1": [
+            "ae_5",
+            "cm_2",
+            "cm_5",
+            "cp_4",
+            "ra_5"
+        ],
+        "CIS-2.0": [
+            "4.11"
+        ],
+        "FFIEC": [
+            "d5-dr-de-b-1",
+            "d5-dr-de-b-3"
+        ],
+        "ISO27001-2013": [
+            "A.12.4"
+        ],
+        "NIST-800-171-Revision-2": [
+            "3_6_1",
+            "3_6_2",
+            "3_12_4"
+        ],
+        "CIS-1.4": [
+            "4.11"
+        ],
+        "NIST-800-53-Revision-5": [
+            "au_6_1",
+            "au_6_5",
+            "au_12_3",
+            "au_14_a",
+            "au_14_b",
+            "ca_2_2",
+            "ca_7",
+            "ca_7_b",
+            "pm_14_a_1",
+            "pm_14_b",
+            "pm_31",
+            "sc_36_1_a",
+            "si_2_a",
+            "si_4_12",
+            "si_5_1",
+            "si_5_b"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "Logging and Monitoring",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudwatch_changes_to_network_gateways_alarm_configured-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudwatch_changes_to_network_gateways_alarm_configured",
+    "CheckTitle": "Ensure a log metric filter and alarm exist for changes to network gateways.",
+    "CheckType": [
+        "Software and Configuration Checks/Industry and Regulatory Standards/CIS AWS Foundations Benchmark"
+    ],
+    "ServiceName": "cloudwatch",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No CloudWatch log groups found with metric filters or alarms associated.",
+    "Severity": "medium",
+    "ResourceType": "AwsCloudTrailTrail",
+    "ResourceDetails": "",
+    "Description": "Ensure a log metric filter and alarm exist for changes to network gateways.",
+    "Risk": "Monitoring unauthorized API calls will help reveal application errors and may reduce time to detect malicious activity.",
+    "RelatedUrl": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "https://docs.bridgecrew.io/docs/monitoring_12#fix---buildtime",
+            "CLI": "https://docs.bridgecrew.io/docs/monitoring_12#procedure",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "It is recommended that a metric filter and alarm be established for unauthorized requests.",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html"
+        }
+    },
+    "Compliance": {
+        "HIPAA": [
+            "164_308_a_6_i"
+        ],
+        "MITRE-ATTACK": [
+            "T1496"
+        ],
+        "CIS-1.5": [
+            "4.12"
+        ],
+        "SOC2": [
+            "cc_7_2",
+            "cc_7_3",
+            "cc_7_4"
+        ],
+        "FedRamp-Moderate-Revision-4": [
+            "ac-2-4",
+            "au-6-1-3",
+            "au-7-1",
+            "ca-7-a-b",
+            "ir-4-1",
+            "ir-4-1",
+            "si-4-2",
+            "si-4-4",
+            "si-4-5",
+            "si-4-a-b-c"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC04-BP04"
+        ],
+        "FedRAMP-Low-Revision-4": [
+            "ir-4"
+        ],
+        "NIST-800-53-Revision-4": [
+            "ac_2_4",
+            "au_6_1",
+            "au_6_3",
+            "au_7_1",
+            "ca_7",
+            "ir_4_1",
+            "si_4_2",
+            "si_4_4",
+            "si_4_5",
+            "si_4"
+        ],
+        "NIST-CSF-1.1": [
+            "ae_5",
+            "cm_2",
+            "cm_5",
+            "cp_4",
+            "ra_5"
+        ],
+        "CIS-2.0": [
+            "4.12"
+        ],
+        "FFIEC": [
+            "d5-dr-de-b-1",
+            "d5-dr-de-b-3"
+        ],
+        "ISO27001-2013": [
+            "A.12.4"
+        ],
+        "NIST-800-171-Revision-2": [
+            "3_6_1",
+            "3_6_2",
+            "3_12_4"
+        ],
+        "CIS-1.4": [
+            "4.12"
+        ],
+        "NIST-800-53-Revision-5": [
+            "au_6_1",
+            "au_6_5",
+            "au_12_3",
+            "au_14_a",
+            "au_14_b",
+            "ca_2_2",
+            "ca_7",
+            "ca_7_b",
+            "pm_14_a_1",
+            "pm_14_b",
+            "pm_31",
+            "sc_36_1_a",
+            "si_2_a",
+            "si_4_12",
+            "si_5_1",
+            "si_5_b"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "Logging and Monitoring",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudwatch_changes_to_network_route_tables_alarm_configured-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudwatch_changes_to_network_route_tables_alarm_configured",
+    "CheckTitle": "Ensure a log metric filter and alarm exist for route table changes.",
+    "CheckType": [
+        "Software and Configuration Checks/Industry and Regulatory Standards/CIS AWS Foundations Benchmark"
+    ],
+    "ServiceName": "cloudwatch",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No CloudWatch log groups found with metric filters or alarms associated.",
+    "Severity": "medium",
+    "ResourceType": "AwsCloudTrailTrail",
+    "ResourceDetails": "",
+    "Description": "Ensure a log metric filter and alarm exist for route table changes.",
+    "Risk": "Monitoring unauthorized API calls will help reveal application errors and may reduce time to detect malicious activity.",
+    "RelatedUrl": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "https://docs.bridgecrew.io/docs/monitoring_13#fix---buildtime",
+            "CLI": "https://docs.bridgecrew.io/docs/monitoring_13#procedure",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "It is recommended that a metric filter and alarm be established for unauthorized requests.",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html"
+        }
+    },
+    "Compliance": {
+        "HIPAA": [
+            "164_308_a_6_i"
+        ],
+        "MITRE-ATTACK": [
+            "T1496"
+        ],
+        "CIS-1.5": [
+            "4.13"
+        ],
+        "SOC2": [
+            "cc_7_2",
+            "cc_7_3",
+            "cc_7_4"
+        ],
+        "FedRamp-Moderate-Revision-4": [
+            "ac-2-4",
+            "au-6-1-3",
+            "au-7-1",
+            "ca-7-a-b",
+            "ir-4-1",
+            "ir-4-1",
+            "si-4-2",
+            "si-4-4",
+            "si-4-5",
+            "si-4-a-b-c"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC04-BP04"
+        ],
+        "FedRAMP-Low-Revision-4": [
+            "ir-4"
+        ],
+        "NIST-800-53-Revision-4": [
+            "ac_2_4",
+            "au_6_1",
+            "au_6_3",
+            "au_7_1",
+            "ca_7",
+            "ir_4_1",
+            "si_4_2",
+            "si_4_4",
+            "si_4_5",
+            "si_4"
+        ],
+        "NIST-CSF-1.1": [
+            "ae_5",
+            "cm_2",
+            "cm_5",
+            "cp_4",
+            "ra_5"
+        ],
+        "CIS-2.0": [
+            "4.13"
+        ],
+        "FFIEC": [
+            "d5-dr-de-b-1",
+            "d5-dr-de-b-3"
+        ],
+        "ISO27001-2013": [
+            "A.12.4"
+        ],
+        "NIST-800-171-Revision-2": [
+            "3_6_1",
+            "3_6_2",
+            "3_12_4"
+        ],
+        "CIS-1.4": [
+            "4.13"
+        ],
+        "NIST-800-53-Revision-5": [
+            "au_6_1",
+            "au_6_5",
+            "au_12_3",
+            "au_14_a",
+            "au_14_b",
+            "ca_2_2",
+            "ca_7",
+            "ca_7_b",
+            "pm_14_a_1",
+            "pm_14_b",
+            "pm_31",
+            "sc_36_1_a",
+            "si_2_a",
+            "si_4_12",
+            "si_5_1",
+            "si_5_b"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "Logging and Monitoring",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+},{
+    "AssessmentStartTime": "2025-10-18T10:26:58.974970",
+    "FindingUniqueId": "prowler-aws-cloudwatch_changes_to_vpcs_alarm_configured-117622437454-us-east-2-117622437454",
+    "Provider": "aws",
+    "CheckID": "cloudwatch_changes_to_vpcs_alarm_configured",
+    "CheckTitle": "Ensure a log metric filter and alarm exist for VPC changes.",
+    "CheckType": [
+        "Software and Configuration Checks/Industry and Regulatory Standards/CIS AWS Foundations Benchmark"
+    ],
+    "ServiceName": "cloudwatch",
+    "SubServiceName": "",
+    "Status": "FAIL",
+    "StatusExtended": "No CloudWatch log groups found with metric filters or alarms associated.",
+    "Severity": "medium",
+    "ResourceType": "AwsCloudTrailTrail",
+    "ResourceDetails": "",
+    "Description": "Ensure a log metric filter and alarm exist for VPC changes.",
+    "Risk": "Monitoring unauthorized API calls will help reveal application errors and may reduce time to detect malicious activity.",
+    "RelatedUrl": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html",
+    "Remediation": {
+        "Code": {
+            "NativeIaC": "",
+            "Terraform": "https://docs.bridgecrew.io/docs/monitoring_14#fix---buildtime",
+            "CLI": "https://docs.bridgecrew.io/docs/monitoring_14#procedure",
+            "Other": ""
+        },
+        "Recommendation": {
+            "Text": "It is recommended that a metric filter and alarm be established for unauthorized requests.",
+            "Url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudwatch-alarms-for-cloudtrail.html"
+        }
+    },
+    "Compliance": {
+        "HIPAA": [
+            "164_308_a_6_i"
+        ],
+        "MITRE-ATTACK": [
+            "T1496"
+        ],
+        "CIS-1.5": [
+            "4.14"
+        ],
+        "SOC2": [
+            "cc_7_2",
+            "cc_7_3",
+            "cc_7_4"
+        ],
+        "FedRamp-Moderate-Revision-4": [
+            "ac-2-4",
+            "au-6-1-3",
+            "au-7-1",
+            "ca-7-a-b",
+            "ir-4-1",
+            "ir-4-1",
+            "si-4-2",
+            "si-4-4",
+            "si-4-5",
+            "si-4-a-b-c"
+        ],
+        "AWS-Well-Architected-Framework-Security-Pillar": [
+            "SEC04-BP04"
+        ],
+        "FedRAMP-Low-Revision-4": [
+            "ir-4"
+        ],
+        "NIST-800-53-Revision-4": [
+            "ac_2_4",
+            "au_6_1",
+            "au_6_3",
+            "au_7_1",
+            "ca_7",
+            "ir_4_1",
+            "si_4_2",
+            "si_4_4",
+            "si_4_5",
+            "si_4"
+        ],
+        "NIST-CSF-1.1": [
+            "ae_5",
+            "cm_2",
+            "cm_5",
+            "cp_4",
+            "ra_5"
+        ],
+        "CIS-2.0": [
+            "4.14"
+        ],
+        "FFIEC": [
+            "d5-dr-de-b-1",
+            "d5-dr-de-b-3"
+        ],
+        "ISO27001-2013": [
+            "A.12.4"
+        ],
+        "NIST-800-171-Revision-2": [
+            "3_6_1",
+            "3_6_2",
+            "3_12_4"
+        ],
+        "CIS-1.4": [
+            "4.14"
+        ],
+        "NIST-800-53-Revision-5": [
+            "au_6_1",
+            "au_6_5",
+            "au_12_3",
+            "au_14_a",
+            "au_14_b",
+            "ca_2_2",
+            "ca_7",
+            "ca_7_b",
+            "pm_14_a_1",
+            "pm_14_b",
+            "pm_31",
+            "sc_36_1_a",
+            "si_2_a",
+            "si_4_12",
+            "si_5_1",
+            "si_5_b"
+        ]
+    },
+    "Categories": [],
+    "DependsOn": [],
+    "RelatedTo": [],
+    "Notes": "Logging and Monitoring",
+    "Profile": "default",
+    "AccountId": "117622437454",
+    "OrganizationsInfo": null,
+    "Region": "us-east-2",
+    "ResourceId": "117622437454",
+    "ResourceArn": "arn:aws:iam::117622437454:root",
+    "ResourceTags": {}
+}]

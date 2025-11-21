@@ -1,0 +1,143 @@
+source,scanner,asset,service,control_id,title,description,status,severity,timestamp
+aws,prowler,,,,Check if IAM Access Analyzer is enabled,Check if IAM Access Analyzer is enabled,fail,low,2025-11-01T06:40:42.124845+00:00
+aws,prowler,,,,"Maintain different contact details to security, billing and operations.","Maintain different contact details to security, billing and operations.",fail,medium,2025-11-01T06:40:42.133441+00:00
+aws,prowler,,,,Ensure that encryption at rest is enabled for Amazon Athena query results stored in Amazon S3 in order to secure data and meet compliance requirements for data-at-rest encryption.,Ensure that encryption at rest is enabled for Amazon Athena query results stored in Amazon S3 in order to secure data and meet compliance requirements for data-at-rest encryption.,fail,medium,2025-11-01T06:40:42.133487+00:00
+aws,prowler,,,,Ensure that workgroup configuration is enforced so it cannot be overriden by client-side settings.,Ensure that workgroup configuration is enforced so it cannot be overriden by client-side settings.,fail,medium,2025-11-01T06:40:42.134327+00:00
+aws,prowler,,,,Ensure AWS Backup vaults exist,This check ensures that AWS Backup vaults exist to provide a secure and durable storage location for backup data.,fail,low,2025-11-01T06:40:42.135197+00:00
+aws,prowler,,,,Ensure CloudTrail is enabled in all regions,Ensure CloudTrail is enabled in all regions,fail,high,2025-11-01T06:40:42.135338+00:00
+aws,prowler,,,,Ensure CloudTrail logging management events in All Regions,Ensure CloudTrail logging management events in All Regions,fail,low,2025-11-01T06:40:42.136910+00:00
+aws,prowler,,,,Check if S3 buckets have Object-level logging for read events is enabled in CloudTrail.,"Ensure that all your AWS CloudTrail trails are configured to log Data events in order to record S3 object-level API operations, such as GetObject, DeleteObject and PutObject, for individual S3 buckets or for all current and future S3 buckets provisioned in your AWS account.",fail,low,2025-11-01T06:40:42.137086+00:00
+aws,prowler,,,,Check if S3 buckets have Object-level logging for write events is enabled in CloudTrail.,"Ensure that all your AWS CloudTrail trails are configured to log Data events in order to record S3 object-level API operations, such as GetObject, DeleteObject and PutObject, for individual S3 buckets or for all current and future S3 buckets provisioned in your AWS account.",fail,low,2025-11-01T06:40:42.137174+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for changes to Network Access Control Lists (NACL).,Ensure a log metric filter and alarm exist for changes to Network Access Control Lists (NACL).,fail,medium,2025-11-01T06:40:42.137240+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for changes to network gateways.,Ensure a log metric filter and alarm exist for changes to network gateways.,fail,medium,2025-11-01T06:40:42.137305+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for route table changes.,Ensure a log metric filter and alarm exist for route table changes.,fail,medium,2025-11-01T06:40:42.137370+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for VPC changes.,Ensure a log metric filter and alarm exist for VPC changes.,fail,medium,2025-11-01T06:40:42.137435+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for AWS Config configuration changes.,Ensure a log metric filter and alarm exist for AWS Config configuration changes.,fail,medium,2025-11-01T06:40:42.137491+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for CloudTrail configuration changes.,Ensure a log metric filter and alarm exist for CloudTrail configuration changes.,fail,medium,2025-11-01T06:40:42.137550+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for AWS Management Console authentication failures.,Ensure a log metric filter and alarm exist for AWS Management Console authentication failures.,fail,medium,2025-11-01T06:40:42.137608+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for AWS Organizations changes.,Ensure a log metric filter and alarm exist for AWS Organizations changes.,fail,medium,2025-11-01T06:40:42.137675+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for disabling or scheduled deletion of customer created KMS CMKs.,Ensure a log metric filter and alarm exist for disabling or scheduled deletion of customer created KMS CMKs.,fail,medium,2025-11-01T06:40:42.137734+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for S3 bucket policy changes.,Ensure a log metric filter and alarm exist for S3 bucket policy changes.,fail,medium,2025-11-01T06:40:42.137791+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for IAM policy changes.,Ensure a log metric filter and alarm exist for IAM policy changes.,fail,medium,2025-11-01T06:40:42.137861+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for usage of root account.,Ensure a log metric filter and alarm exist for usage of root account.,fail,medium,2025-11-01T06:40:42.137934+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for security group changes.,Ensure a log metric filter and alarm exist for security group changes.,fail,medium,2025-11-01T06:40:42.137990+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for Management Console sign-in without MFA.,Ensure a log metric filter and alarm exist for Management Console sign-in without MFA.,fail,medium,2025-11-01T06:40:42.138046+00:00
+aws,prowler,,,,Ensure a log metric filter and alarm exist for unauthorized API calls.,Ensure a log metric filter and alarm exist for unauthorized API calls.,fail,medium,2025-11-01T06:40:42.138102+00:00
+aws,prowler,,,,Ensure AWS Config is enabled in all regions.,Ensure AWS Config is enabled in all regions.,fail,medium,2025-11-01T06:40:42.138166+00:00
+aws,prowler,,,,Ensure DRS is enabled with jobs.,Ensure DRS is enabled with jobs.,fail,medium,2025-11-01T06:40:42.139297+00:00
+aws,prowler,,,,Check if EBS Default Encryption is activated.,Check if EBS Default Encryption is activated.,fail,medium,2025-11-01T06:40:42.140194+00:00
+aws,prowler,,,,Ensure no Network ACLs allow ingress from 0.0.0.0/0 to any port.,Ensure no Network ACLs allow ingress from 0.0.0.0/0 to any port.,fail,medium,2025-11-01T06:40:42.141333+00:00
+aws,prowler,,,,Ensure no Network ACLs allow ingress from 0.0.0.0/0 to SSH port 22,Ensure no Network ACLs allow ingress from 0.0.0.0/0 to SSH port 22,fail,medium,2025-11-01T06:40:42.142466+00:00
+aws,prowler,,,,Ensure no Network ACLs allow ingress from 0.0.0.0/0 to Microsoft RDP port 3389,Ensure no Network ACLs allow ingress from 0.0.0.0/0 to Microsoft RDP port 3389,fail,medium,2025-11-01T06:40:42.143396+00:00
+aws,prowler,,,,Ensure the default security group of every VPC restricts all traffic.,Ensure the default security group of every VPC restricts all traffic.,fail,high,2025-11-01T06:40:42.144400+00:00
+aws,prowler,,,,Check if Glue data catalog settings have encrypt connection password enabled.,Check if Glue data catalog settings have encrypt connection password enabled.,fail,medium,2025-11-01T06:40:42.145689+00:00
+aws,prowler,,,,Check if Glue data catalog settings have metadata encryption enabled.,Check if Glue data catalog settings have metadata encryption enabled.,fail,medium,2025-11-01T06:40:42.146576+00:00
+aws,prowler,,,,Check if GuardDuty is enabled,Check if GuardDuty is enabled,fail,medium,2025-11-01T06:40:42.147459+00:00
+aws,prowler,,,,Ensure IAM password policy expires passwords within 90 days or less,Ensure IAM password policy expires passwords within 90 days or less,fail,medium,2025-11-01T06:40:42.148749+00:00
+aws,prowler,,,,Ensure IAM password policy require at least one lowercase letter,Ensure IAM password policy requires at least one uppercase letter,fail,medium,2025-11-01T06:40:42.150705+00:00
+aws,prowler,,,,Ensure IAM password policy requires minimum length of 14 or greater,Ensure IAM password policy requires minimum length of 14 or greater,fail,medium,2025-11-01T06:40:42.150796+00:00
+aws,prowler,,,,Ensure IAM password policy require at least one number,Ensure IAM password policy require at least one number,fail,medium,2025-11-01T06:40:42.150852+00:00
+aws,prowler,,,,Ensure IAM password policy prevents password reuse: 24 or greater,Ensure IAM password policy prevents password reuse: 24 or greater,fail,medium,2025-11-01T06:40:42.150906+00:00
+aws,prowler,,,,Ensure IAM password policy require at least one symbol,Ensure IAM password policy require at least one symbol,fail,medium,2025-11-01T06:40:42.150987+00:00
+aws,prowler,,,,Ensure IAM password policy requires at least one uppercase letter,Ensure IAM password policy requires at least one uppercase letter,fail,medium,2025-11-01T06:40:42.151040+00:00
+aws,prowler,,,,Ensure only hardware MFA is enabled for the root account,Ensure only hardware MFA is enabled for the root account,fail,critical,2025-11-01T06:40:42.151117+00:00
+aws,prowler,,,,Ensure MFA is enabled for the root account,Ensure MFA is enabled for the root account,fail,critical,2025-11-01T06:40:42.151190+00:00
+aws,prowler,,,,Ensure a Security Audit role has been created to conduct security audits,Ensure a Security Audit role has been created to conduct security audits,fail,low,2025-11-01T06:40:42.151236+00:00
+aws,prowler,,,,Check if IAM users have Hardware MFA enabled.,Check if IAM users have Hardware MFA enabled.,fail,medium,2025-11-01T06:40:42.151281+00:00
+aws,prowler,,,,Ensure multi-factor authentication (MFA) is enabled for all IAM users that have a console password.,Ensure multi-factor authentication (MFA) is enabled for all IAM users that have a console password.,fail,high,2025-11-01T06:40:42.151339+00:00
+aws,prowler,,,,Ensure users make use of temporary credentials assuming IAM roles,Ensure users make use of temporary credentials assuming IAM roles,fail,medium,2025-11-01T06:40:42.151458+00:00
+aws,prowler,,,,Check if Inspector2 findings exist,Check if Inspector2 findings exist,fail,medium,2025-11-01T06:40:42.151511+00:00
+aws,prowler,,,,Ensure all VPCs have Network Firewall enabled,Ensure all VPCs have Network Firewall enabled,fail,medium,2025-11-01T06:40:42.151612+00:00
+aws,prowler,,,,Resource Explorer Indexes Found,Resource Explorer Indexes Found,fail,low,2025-11-01T06:40:42.152431+00:00
+aws,prowler,,,,Check S3 Account Level Public Access Block.,Check S3 Account Level Public Access Block.,fail,high,2025-11-01T06:40:42.152491+00:00
+aws,prowler,,,,Ensure SSM Incidents is enabled with response plans.,Ensure SSM Incidents is enabled with response plans.,fail,low,2025-11-01T06:40:42.152537+00:00
+aws,prowler,,,,Check if a Premium support plan is subscribed,Check if a Premium support plan is subscribed.,fail,low,2025-11-01T06:40:42.152584+00:00
+aws,prowler,,,,Ensure there are VPCs in more than one region,Ensure there are VPCs in more than one region,fail,medium,2025-11-01T06:40:42.152661+00:00
+aws,prowler,,,,Ensure VPC Flow Logging is Enabled in all VPCs.,Ensure VPC Flow Logging is Enabled in all VPCs.,fail,medium,2025-11-01T06:40:42.152721+00:00
+aws,prowler,,,,Ensure VPC subnets do not assign public IP by default,Ensure VPC subnets do not assign public IP by default,fail,medium,2025-11-01T06:40:42.153853+00:00
+aws,prowler,,,,Ensure all VPC has public and private subnets defined,Ensure all VPC has public and private subnets defined,fail,medium,2025-11-01T06:40:42.156622+00:00
+aws,prowler,,,,Maintain current contact details.,Maintain current contact details.,info,medium,2025-11-01T06:40:42.353309+00:00
+aws,prowler,,,,Ensure security contact information is registered.,Ensure security contact information is registered.,info,medium,2025-11-01T06:40:42.353409+00:00
+aws,prowler,,,,Ensure security questions are registered in the AWS account.,Ensure security questions are registered in the AWS account.,info,medium,2025-11-01T06:40:42.353454+00:00
+aws,prowler,,,,Check if CloudWatch has allowed cross-account sharing.,Check if CloudWatch has allowed cross-account sharing.,pass,medium,2025-11-01T06:40:42.379618+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to any port.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to any port.,pass,high,2025-11-01T06:40:42.380699+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to MongoDB ports 27017 and 27018.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to MongoDB ports 27017 and 27018.,pass,high,2025-11-01T06:40:42.380754+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to FTP ports 20 or 21.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to FTP ports 20 or 21.,pass,high,2025-11-01T06:40:42.380808+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to SSH port 22.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to SSH port 22.,pass,high,2025-11-01T06:40:42.380878+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to port 3389.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to port 3389.,pass,high,2025-11-01T06:40:42.380937+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Cassandra ports 7199 or 9160 or 8888.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Cassandra ports 7199 or 9160 or 8888.,pass,high,2025-11-01T06:40:42.381142+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Elasticsearch/Kibana ports.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Elasticsearch/Kibana ports.,pass,high,2025-11-01T06:40:42.381198+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Kafka port 9092.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Kafka port 9092.,pass,high,2025-11-01T06:40:42.381254+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Memcached port 11211.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Memcached port 11211.,pass,high,2025-11-01T06:40:42.381306+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to MySQL port 3306.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to MySQL port 3306.,pass,high,2025-11-01T06:40:42.381357+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Oracle ports 1521 or 2483.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Oracle ports 1521 or 2483.,pass,high,2025-11-01T06:40:42.381418+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Postgres port 5432.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Postgres port 5432.,pass,high,2025-11-01T06:40:42.381471+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Redis port 6379.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Redis port 6379.,pass,high,2025-11-01T06:40:42.381521+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Windows SQL Server ports 1433 or 1434.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Windows SQL Server ports 1433 or 1434.,pass,high,2025-11-01T06:40:42.381571+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Telnet port 23.,Ensure no security groups allow ingress from 0.0.0.0/0 or ::/0 to Telnet port 23.,pass,high,2025-11-01T06:40:42.381621+00:00
+aws,prowler,,,,Ensure no security groups allow ingress from wide-open non-RFC1918 address.,Ensure no security groups allow ingress from wide-open non-RFC1918 address.,pass,high,2025-11-01T06:40:42.381671+00:00
+aws,prowler,,,,Security Groups created by EC2 Launch Wizard.,Security Groups created by EC2 Launch Wizard.,pass,medium,2025-11-01T06:40:42.381787+00:00
+aws,prowler,,,,Find security groups with more than 50 ingress or egress rules.,Find security groups with more than 50 ingress or egress rules.,pass,high,2025-11-01T06:40:42.381836+00:00
+aws,prowler,,,,EMR Account Public Access Block enabled.,EMR Account Public Access Block enabled.,pass,high,2025-11-01T06:40:42.381885+00:00
+aws,prowler,,,,Ensure users of groups with AdministratorAccess policy have MFA tokens enabled,Ensure users of groups with AdministratorAccess policy have MFA tokens enabled,pass,high,2025-11-01T06:40:42.382108+00:00
+aws,prowler,,,,"Ensure IAM AWS-Managed policies that allow full ""*:*"" administrative privileges are not attached","Ensure IAM AWS-Managed policies that allow full ""*:*"" administrative privileges are not attached",pass,high,2025-11-01T06:40:42.382181+00:00
+aws,prowler,,,,Ensure no root account access key exists,Ensure no root account access key exists,pass,critical,2025-11-01T06:40:42.382384+00:00
+aws,prowler,,,,Ensure IAM policies are attached only to groups or roles,Ensure IAM policies are attached only to groups or roles,pass,low,2025-11-01T06:40:42.382817+00:00
+aws,prowler,,,,Ensure a support role has been created to manage incidents with AWS Support,Ensure a support role has been created to manage incidents with AWS Support,pass,medium,2025-11-01T06:40:42.383054+00:00
+aws,prowler,,,,Ensure unused user console access are disabled,Ensure unused user console access are disabled,pass,medium,2025-11-01T06:40:42.383116+00:00
+aws,prowler,,,,Do not setup access keys during initial user setup for all IAM users that have a console password,Do not setup access keys during initial user setup for all IAM users that have a console password,pass,medium,2025-11-01T06:40:42.383337+00:00
+aws,prowler,,,,Check if IAM users have two active access keys,Check if IAM users have two active access keys,pass,medium,2025-11-01T06:40:42.383433+00:00
+aws,prowler,,,,Check if Amazon Macie is enabled.,Check if Amazon Macie is enabled.,fail,low,2025-11-01T06:40:42.383617+00:00
+aws,prowler,,,,Check if account is part of an AWS Organizations,Ensure that AWS Organizations service is currently in use.,fail,medium,2025-11-01T06:40:42.383708+00:00
+aws,prowler,,,,Check if AWS Regions are restricted with SCP policies,"As best practice, AWS Regions should be restricted and only allow the ones that are needed.",fail,low,2025-11-01T06:40:42.383752+00:00
+aws,prowler,,,,Check if an AWS Organization has tags policies enabled and attached.,Check if an AWS Organization has tags policies enabled and attached.,fail,medium,2025-11-01T06:40:42.383794+00:00
+aws,prowler,,,,Check if Security Hub is enabled and its standard subscriptions.,Check if Security Hub is enabled and its standard subscriptions.,fail,medium,2025-11-01T06:40:42.383949+00:00
+aws,prowler,,,,Check Trusted Advisor for errors and warnings.,Check Trusted Advisor for errors and warnings.,info,medium,2025-11-01T06:40:42.384033+00:00
+aws,prowler,,,,Ensure all VPC has subnets in more than one availability zone,Ensure all VPC has subnets in more than one availability zone,pass,medium,2025-11-01T06:40:42.384215+00:00
+linux,lynis,kaliscanner,linux,LYNIS,Suggestion,This release is more than 4 months old. Check the website or GitHub to see if there is an update available.|-|-|,warn,low,2025-11-01T06:40:42.492662+00:00
+linux,lynis,kaliscanner,linux,DEB-0280,Suggestion,Install libpam-tmpdir to set $TMP and $TMPDIR for PAM sessions|-|-|,warn,low,2025-11-01T06:40:42.492703+00:00
+linux,lynis,kaliscanner,linux,DEB-0810,Suggestion,Install apt-listbugs to display a list of critical bugs prior to each APT installation.|-|-|,warn,low,2025-11-01T06:40:42.492721+00:00
+linux,lynis,kaliscanner,linux,DEB-0811,Suggestion,Install apt-listchanges to display any significant changes prior to any upgrade via APT.|-|-|,warn,low,2025-11-01T06:40:42.492738+00:00
+linux,lynis,kaliscanner,linux,DEB-0831,Suggestion,"Install needrestart, alternatively to debian-goodies, so that you can run needrestart after upgrades to determine which daemons are using old versions of libraries and need restarting.|-|-|",warn,low,2025-11-01T06:40:42.492754+00:00
+linux,lynis,kaliscanner,linux,DEB-0880,Suggestion,Install fail2ban to automatically ban hosts that commit multiple authentication errors.|-|-|,warn,low,2025-11-01T06:40:42.492770+00:00
+linux,lynis,kaliscanner,linux,BOOT-5122,Suggestion,Set a password on GRUB boot loader to prevent altering boot configuration (e.g. boot in single user mode without password)|-|-|,warn,low,2025-11-01T06:40:42.492786+00:00
+linux,lynis,kaliscanner,linux,BOOT-5180,Suggestion,Determine runlevel and services at startup|-|-|,warn,low,2025-11-01T06:40:42.492803+00:00
+linux,lynis,kaliscanner,linux,BOOT-5264,Suggestion,Consider hardening system services|Run '/usr/bin/systemd-analyze security SERVICE' for each service|-|,warn,low,2025-11-01T06:40:42.492820+00:00
+linux,lynis,kaliscanner,linux,KRNL-5830,Warning,Reboot of system is most likely needed||text:reboot|,fail,medium,2025-11-01T06:40:42.492837+00:00
+linux,lynis,kaliscanner,linux,AUTH-9230,Suggestion,Configure password hashing rounds in /etc/login.defs|-|-|,warn,low,2025-11-01T06:40:42.492853+00:00
+linux,lynis,kaliscanner,linux,AUTH-9262,Suggestion,Install a PAM module for password strength testing like pam_cracklib or pam_passwdqc or libpam-passwdqc|-|-|,warn,low,2025-11-01T06:40:42.492870+00:00
+linux,lynis,kaliscanner,linux,AUTH-9282,Suggestion,When possible set expire dates for all password protected accounts|-|-|,warn,low,2025-11-01T06:40:42.492886+00:00
+linux,lynis,kaliscanner,linux,AUTH-9286,Suggestion,Configure minimum password age in /etc/login.defs|-|-|,warn,low,2025-11-01T06:40:42.492903+00:00
+linux,lynis,kaliscanner,linux,AUTH-9328,Suggestion,"Default umask in /etc/login.defs could not be found and defaults usually to 022, which could be more strict like 027|-|-|",warn,low,2025-11-01T06:40:42.492937+00:00
+linux,lynis,kaliscanner,linux,FILE-6310,Suggestion,"To decrease the impact of a full /home file system, place /home on a separate partition|-|-|",warn,low,2025-11-01T06:40:42.493029+00:00
+linux,lynis,kaliscanner,linux,USB-1000,Suggestion,"Disable drivers like USB storage when not used, to prevent unauthorized storage or data theft|-|-|",warn,low,2025-11-01T06:40:42.493063+00:00
+linux,lynis,kaliscanner,linux,STRG-1846,Suggestion,"Disable drivers like firewire storage when not used, to prevent unauthorized storage or data theft|-|-|",warn,low,2025-11-01T06:40:42.493080+00:00
+linux,lynis,kaliscanner,linux,NAME-4028,Suggestion,Check DNS configuration for the dns domain name|-|-|,warn,low,2025-11-01T06:40:42.493097+00:00
+linux,lynis,kaliscanner,linux,PKGS-7308,Suggestion,Check RPM database as RPM binary available but does not reveal any packages|-|-|,warn,low,2025-11-01T06:40:42.493114+00:00
+linux,lynis,kaliscanner,linux,PKGS-7370,Suggestion,Install debsums utility for the verification of packages with known good database.|-|-|,warn,low,2025-11-01T06:40:42.493131+00:00
+linux,lynis,kaliscanner,linux,PKGS-7394,Suggestion,Install package apt-show-versions for patch management purposes|-|-|,warn,low,2025-11-01T06:40:42.493148+00:00
+linux,lynis,kaliscanner,linux,PKGS-7420,Suggestion,Consider using a tool to automatically apply upgrades|-|-|,warn,low,2025-11-01T06:40:42.493165+00:00
+linux,lynis,kaliscanner,linux,NETW-2705,Warning,Couldn't find 2 responsive nameservers|-|-|,fail,medium,2025-11-01T06:40:42.493181+00:00
+linux,lynis,kaliscanner,linux,NETW-2705,Suggestion,Check your resolv.conf file and fill in a backup nameserver if possible|-|-|,warn,low,2025-11-01T06:40:42.493198+00:00
+linux,lynis,kaliscanner,linux,NETW-3200,Suggestion,Determine if protocol 'dccp' is really needed on this system|-|-|,warn,low,2025-11-01T06:40:42.493215+00:00
+linux,lynis,kaliscanner,linux,FIRE-4512,Warning,"iptables module(s) loaded, but no rules active|-|-|",fail,medium,2025-11-01T06:40:42.493281+00:00
+linux,lynis,kaliscanner,linux,HTTP-6640,Suggestion,Install Apache mod_evasive to guard webserver against DoS/brute force attempts|-|-|,warn,low,2025-11-01T06:40:42.493298+00:00
+linux,lynis,kaliscanner,linux,HTTP-6643,Suggestion,Install Apache modsecurity to guard webserver against web application attacks|-|-|,warn,low,2025-11-01T06:40:42.493315+00:00
+linux,lynis,kaliscanner,linux,PHP-2376,Suggestion,"Change the allow_url_fopen line to: allow_url_fopen = Off, to disable downloads via PHP|-|-|",warn,low,2025-11-01T06:40:42.493332+00:00
+linux,lynis,kaliscanner,linux,LOGG-2154,Suggestion,Enable logging to an external logging host for archiving purposes and additional protection|-|-|,warn,low,2025-11-01T06:40:42.493348+00:00
+linux,lynis,kaliscanner,linux,LOGG-2190,Suggestion,Check what deleted files are still in use and why.|-|-|,warn,low,2025-11-01T06:40:42.493366+00:00
+linux,lynis,kaliscanner,linux,INSE-8300,Suggestion,Remove rsh client when it is not in use or replace with the more secure SSH package|-|-|,warn,low,2025-11-01T06:40:42.493383+00:00
+linux,lynis,kaliscanner,linux,INSE-8318,Suggestion,"It is recommended that TFTP be removed, unless there is a specific need for TFTP (such as a boot server)|-|-|",warn,low,2025-11-01T06:40:42.493400+00:00
+linux,lynis,kaliscanner,linux,INSE-8320,Suggestion,Removing the atftpd package decreases the risk of the accidental (or intentional) activation of tftp services|-|-|,warn,low,2025-11-01T06:40:42.493417+00:00
+linux,lynis,kaliscanner,linux,BANN-7126,Suggestion,"Add a legal banner to /etc/issue, to warn unauthorized users|-|-|",warn,low,2025-11-01T06:40:42.493434+00:00
+linux,lynis,kaliscanner,linux,BANN-7130,Suggestion,"Add legal banner to /etc/issue.net, to warn unauthorized users|-|-|",warn,low,2025-11-01T06:40:42.493450+00:00
+linux,lynis,kaliscanner,linux,ACCT-9622,Suggestion,Enable process accounting|-|-|,warn,low,2025-11-01T06:40:42.493467+00:00
+linux,lynis,kaliscanner,linux,ACCT-9626,Suggestion,Enable sysstat to collect accounting (disabled)|-|-|,warn,low,2025-11-01T06:40:42.493484+00:00
+linux,lynis,kaliscanner,linux,ACCT-9628,Suggestion,Enable auditd to collect audit information|-|-|,warn,low,2025-11-01T06:40:42.493501+00:00
+linux,lynis,kaliscanner,linux,FINT-4350,Suggestion,Install a file integrity tool to monitor changes to critical and sensitive files|-|-|,warn,low,2025-11-01T06:40:42.493518+00:00
+linux,lynis,kaliscanner,linux,TOOL-5002,Suggestion,Determine if automation tools are present for system management|-|-|,warn,low,2025-11-01T06:40:42.493535+00:00
+linux,lynis,kaliscanner,linux,FILE-7524,Suggestion,Consider restricting file permissions|See screen output or log file|text:Use chmod to change file permissions|,warn,low,2025-11-01T06:40:42.493552+00:00
+linux,lynis,kaliscanner,linux,HOME-9304,Suggestion,Double check the permissions of home directories as some might be not strict enough.|-|-|,warn,low,2025-11-01T06:40:42.493568+00:00
+linux,lynis,kaliscanner,linux,KRNL-6000,Suggestion,One or more sysctl values differ from the scan profile and could be tweaked||Change sysctl value or disable test (skip-test=KRNL-6000:<sysctl-key>)|,warn,low,2025-11-01T06:40:42.493585+00:00
+linux,lynis,kaliscanner,linux,HRDN-7222,Suggestion,Harden compilers like restricting access to root user only|-|-|,warn,low,2025-11-01T06:40:42.493602+00:00
+linux,lynis,kaliscanner,linux,HRDN-7230,Suggestion,"Harden the system by installing at least one malware scanner, to perform periodic file system scans|-|Install a tool like rkhunter, chkrootkit, OSSEC, Wazuh|",warn,low,2025-11-01T06:40:42.493619+00:00
