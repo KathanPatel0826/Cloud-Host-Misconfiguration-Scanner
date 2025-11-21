@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+out/
+output/
+reports/
+venv/
+__pycache__/
+*.log
+>>>>>>> 49bd730 (intial commit: pipeline + scripts)
