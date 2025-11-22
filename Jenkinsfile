@@ -3,15 +3,14 @@ pipeline {
 
   options {
     timestamps()
-    ansiColor('xterm')
     buildDiscarder(logRotator(numToKeepStr: '15'))
     disableConcurrentBuilds()
   }
 
   environment {
     PYTHONUNBUFFERED = '1'
-    OUT_DIR    = 'out'     // keep reports + jsons here to make archiving simple
-    REPORT_DIR = 'out'     // run_pipeline.sh will honor this env var
+    OUT_DIR    = 'out'     // reports + JSONs
+    REPORT_DIR = 'out'     // keep everything together
     LOG_DIR    = 'logs'
   }
 
@@ -20,8 +19,7 @@ pipeline {
     stage('Init (clear old params)') {
       steps {
         script {
-          // safety: clear old parameters if you had any previously
-          properties([parameters([])])
+          properties([parameters([])])   // clear any stale params
           echo "Cleared leftover job parameters."
         }
       }
@@ -50,7 +48,6 @@ pipeline {
         sh '''
           . .venv/bin/activate
           chmod +x run_pipeline.sh
-          # ensure the script writes into OUT_DIR/REPORT_DIR we expect
           OUT_DIR="${OUT_DIR}" REPORT_DIR="${REPORT_DIR}" LOG_DIR="${LOG_DIR}" ./run_pipeline.sh
         '''
       }
@@ -60,8 +57,7 @@ pipeline {
       steps {
         sh '''
           . .venv/bin/activate
-          # If risk_report.html wasn't produced by your report generator,
-          # build it from normalized json (keeps Quality Gate working).
+          # fallback: create risk report if not already produced by your report step
           if [ ! -f "${OUT_DIR}/risk_report.html" ]; then
             python3 score_and_report.py --in "${OUT_DIR}/normalized_findings.json" --out "${OUT_DIR}" --pdf || true
           fi
@@ -71,10 +67,8 @@ pipeline {
 
     stage('Publish Report') {
       steps {
-        // Archive everything that's useful for grading / evidence
         archiveArtifacts artifacts: 'out/**, reports/**, output/**, logs/**, last_*.json, last_*.html', fingerprint: true
 
-        // Publish the risk report (HTML) from OUT_DIR
         publishHTML(target: [
           allowMissing: true,
           alwaysLinkToLastBuild: true,
@@ -84,8 +78,6 @@ pipeline {
           reportName: 'Risk Report'
         ])
 
-        // If you also render a general report.html into REPORT_DIR (out),
-        // publish it too (safe if missing)
         publishHTML(target: [
           allowMissing: true,
           alwaysLinkToLastBuild: true,
@@ -100,7 +92,6 @@ pipeline {
     stage('Quality Gate') {
       steps {
         script {
-          // Parse score & grade out of the risk report if it exists
           def totalScore = sh(
             script: "grep -o 'Total Risk Score</div><div><b>[^<]*' ${OUT_DIR}/risk_report.html | sed 's/.*<b>//'",
             returnStdout: true
@@ -113,8 +104,7 @@ pipeline {
 
           echo "Quality Gate => totalScore=${totalScore}, grade=${grade}"
 
-          // Example pass condition (tune as you like):
-          // - allow all (demo), or enforce thresholds
+          // Adjust your pass/fail policy here if you want enforcement.
           currentBuild.result = 'SUCCESS'
         }
       }
@@ -129,8 +119,8 @@ pipeline {
       echo 'Pipeline failed.'
     }
     always {
-      // Uncomment if you want to keep workspace clean
-      // cleanWs()
+      echo 'Build completed (post -> always).'
+      // cleanWs()   // <- uncomment if you want to clean the workspace
     }
   }
 }
