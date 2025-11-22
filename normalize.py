@@ -1,484 +1,412 @@
 #!/usr/bin/env python3
-from __future__ import annotations
+"""
+normalize.py — Data Handling & JSON Normalization for CYB590 Cloud & Host Misconfiguration Scanner
 
+Usage examples:
+  # Typical: feed individual scanner outputs
+  python3 normalize.py --in output/prowler-output-*.json reports/lynis-report*.dat --out out/
+
+  # Or: feed a combined JSON you've already merged elsewhere
+  python3 normalize.py --in combined_scanner.json --out out/
+
+What it produces:
+  out/normalized_findings.json     # unified schema across scanners
+  out/compliance_summary.json      # per-framework pass/fail aggregation
+  (stdout)                         # one-line run summary
+
+Optional file:
+  compliance_map.yaml  # Regex/exact mappings: check_id -> [ "CIS_xxx:1.2.3", "NIST_800-53:AC-3" ]
+"""
+
+from __future__ import annotations
 import argparse
-import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+from collections import defaultdict
 
-# ---------------------------
-# Maps
-# ---------------------------
+# -------- Configs --------
 
 SEVERITY_MAP = {
-    "critical":"critical","crit":"critical",
-    "high":"high",
-    "medium":"medium","med":"medium",
-    "low":"low",
-    "informational":"info","info":"info","none":"info",
-    "5":"critical","4":"high","3":"medium","2":"low","1":"info","0":"info",
+    "critical": "critical", "crit": "critical",
+    "high": "high",
+    "medium": "medium", "med": "medium",
+    "low": "low",
+    "informational": "info", "information": "info", "info": "info", "passed": "info", "pass": "info"
 }
 
-STATUS_MAP = {
-    "pass":"pass","ok":"pass","passed":"pass","success":"pass",
-    "fail":"fail","failed":"fail","error":"fail",
-    "warning":"warn","warn":"warn",
-    "info":"info","manual":"info","not_applicable":"info","na":"info",
-}
+RISK_WEIGHT = {"critical": 5, "high": 3, "medium": 2, "low": 1, "info": 0}
 
-# ---------------------------
-# Helpers
-# ---------------------------
+# Lazy YAML import (optional dependency)
+try:
+    import yaml  # type: ignore
+except Exception:
+    yaml = None
+
+# -------- Helpers --------
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
-def _s(x: Any) -> Optional[str]:
-    """Coerce to a clean string (handles dict/list gracefully)."""
-    if x is None:
-        return None
-    if isinstance(x, (int, float, bool)):
-        return str(x)
-    if isinstance(x, dict):
-        # try common text-like keys
-        for k in ("text","Text","desc","Desc","message","Message"):
-            v = x.get(k)
-            if isinstance(v, str) and v.strip():
-                return v.strip()
-        try:
-            return json.dumps(x, ensure_ascii=False)
-        except Exception:
-            return str(x)
-    if isinstance(x, (list, tuple)):
-        parts = [p for p in (_s(i) for i in x) if p]
-        return "; ".join(parts) if parts else None
-    try:
-        s = str(x).strip()
-        return s or None
-    except Exception:
-        return None
+def load_json_file(path: str) -> Any:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-def _norm_severity(value: Optional[str]) -> str:
-    if not value: return "info"
-    v = str(value).strip().lower()
-    return SEVERITY_MAP.get(v, v if v in {"critical","high","medium","low","info"} else "info")
-
-def _norm_status(value: Optional[str]) -> str:
-    if not value: return "info"
-    v = str(value).strip().lower()
-    return STATUS_MAP.get(v, v if v in {"pass","fail","warn","info"} else "info")
-
-# ---------------------------
-# Unified schema (no remediation, no cis_benchmark)
-# ---------------------------
-
-UnifiedFinding = Dict[str, Any]
-SCHEMA_FIELDS = [
-    "source","scanner","asset","service","control_id","title","description",
-    "status","severity","timestamp","raw"
-]
-
-def _mk_finding(
-    *, source: str, scanner: str, asset: Optional[str], service: Optional[str],
-    control_id: Optional[str], title: Optional[str], description: Optional[str],
-    status: Optional[str], severity: Optional[str], timestamp: Optional[str],
-    raw: Dict[str, Any],
-) -> UnifiedFinding:
-    return {
-        "source": source or "unknown",
-        "scanner": scanner or "unknown",
-        "asset": _s(asset),
-        "service": _s(service),
-        "control_id": _s(control_id),
-        "title": _s(title),
-        "description": _s(description),
-        "status": _norm_status(status),
-        "severity": _norm_severity(severity),
-        "timestamp": timestamp or now_iso(),
-        "raw": raw,
-    }
-
-# ---------------------------
-# Adapters
-# ---------------------------
-
-def adapt_prowler(record: Dict[str, Any]) -> UnifiedFinding:
-    return _mk_finding(
-        source="aws",
-        scanner="prowler",
-        asset=record.get("resource") or record.get("account_id") or record.get("ACCOUNT_ID"),
-        service=record.get("service") or record.get("Service"),
-        control_id=record.get("check_id") or record.get("ControlId") or record.get("Id"),
-        title=record.get("check_title") or record.get("Title") or record.get("CheckTitle"),
-        description=record.get("description") or record.get("Description"),
-        status=record.get("status") or record.get("Status"),
-        severity=record.get("severity") or record.get("Severity"),
-        timestamp=record.get("timestamp") or record.get("Timestamp"),
-        raw=record,
-    )
-
-def adapt_lynis(record: Dict[str, Any]) -> UnifiedFinding:
-    service = record.get("category") or record.get("group") or "linux"
-    title = record.get("title") or record.get("test") or record.get("test_id")
-    return _mk_finding(
-        source="linux",
-        scanner="lynis",
-        asset=record.get("host") or record.get("hostname") or record.get("node"),
-        service=service,
-        control_id=record.get("test_id") or record.get("id") or record.get("control_id"),
-        title=title,
-        description=record.get("description") or record.get("detail") or title,
-        status=record.get("status") or record.get("result"),
-        severity=record.get("severity") or record.get("level"),
-        timestamp=record.get("timestamp") or record.get("time"),
-        raw=record,
-    )
-
-# ---------------------------
-# Loaders / Parsers
-# ---------------------------
-
-def load_text(path: str) -> str:
+def load_text_file(path: str) -> str:
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
         return f.read()
 
-def parse_lynis_dat(path: str) -> List[Dict[str, Any]]:
+def ensure_dir(d: str) -> None:
+    os.makedirs(d, exist_ok=True)
+
+def safe_sev(v: Optional[str]) -> str:
+    if not v:
+        return "info"
+    key = str(v).strip().lower()
+    return SEVERITY_MAP.get(key, key if key in RISK_WEIGHT else "info")
+
+def weight_for(sev: str) -> int:
+    return RISK_WEIGHT.get(sev, 0)
+
+def coalesce(*vals, default=None):
+    for v in vals:
+        if v not in (None, "", []):
+            return v
+    return default
+
+# -------- Compliance mapping --------
+
+def load_compliance_map(path: str) -> Dict[str, Dict[str, List[str]]]:
     """
-    Parse Lynis report.dat (key=value lines) into records.
-    Converts warning[] / suggestion[] / hint[] lines into findings.
-    Example: warning[]=FIRE-4512|iptables module(s) loaded, but no rules active|...
+    Returns:
+      {
+        "prowler": { "<exact or regex>": ["CIS_AWS_1.2:1.2.3", "NIST_800-53:AC-3"], ... },
+        "lynis":   { "<exact or regex>": [...] }
+      }
     """
-    text = load_text(path)
-    records: List[Dict[str, Any]] = []
-    host = None
+    empty = {"prowler": {}, "lynis": {}}
+    if not path or not os.path.isfile(path) or yaml is None:
+        return empty
+    with open(path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return {
+        "prowler": data.get("prowler", {}) or {},
+        "lynis": data.get("lynis", {}) or {},
+    }
 
-    for line in text.splitlines():
-        line = line.strip()
-        if not line or "=" not in line or line.startswith("#"):
-            continue
+def from_prowler_native_compliance(raw: Dict[str, Any]) -> List[str]:
+    """Prowler sometimes includes Compliance/ComplianceRequirements fields."""
+    controls: List[str] = []
+    comp = raw.get("Compliance") or raw.get("ComplianceRequirements")
+    if isinstance(comp, list):
+        for item in comp:
+            if isinstance(item, str):
+                controls.append(item.strip())
+            elif isinstance(item, dict):
+                fw = item.get("Framework") or item.get("Standard") or item.get("FrameworkName")
+                req = item.get("Requirement") or item.get("Control") or item.get("Id") or item.get("Section")
+                if fw and req:
+                    controls.append(f"{fw}:{req}")
+    elif isinstance(comp, dict):
+        for fw, req in comp.items():
+            if isinstance(req, list):
+                controls.extend([f"{fw}:{r}" for r in req])
+            elif isinstance(req, str):
+                controls.append(f"{fw}:{req}")
+    return [c for c in controls if isinstance(c, str) and c.strip()]
 
-        key, val = line.split("=", 1)
-        k = key.strip().lower()
-        v = val.strip()
+def map_compliance(scanner: str, check_id: str, raw: Dict[str, Any], cmap: Dict[str, Dict[str, List[str]]]) -> List[str]:
+    controls: List[str] = []
+    # 1) Native Prowler metadata
+    if scanner == "prowler":
+        controls.extend(from_prowler_native_compliance(raw))
 
-        if k in ("hostname", "host", "system"):
-            host = v
+    # 2) YAML mappings (exact/regex)
+    mapping = cmap.get(scanner, {})
+    for pattern, mapped in mapping.items():
+        try:
+            if pattern == check_id or re.search(pattern, check_id, re.IGNORECASE):
+                controls.extend(mapped or [])
+        except re.error:
+            # bad regex in map; fall back to exact
+            if pattern == check_id:
+                controls.extend(mapped or [])
 
-        def _rec(title: str, status: str, severity: str) -> Dict[str, Any]:
-            code, msg = None, v
-            if "|" in v:
-                parts = v.split("|")
-                if parts and parts[0] and not parts[0].startswith("text:"):
-                    code = parts[0]
-                    msg = "|".join(parts[1:]).strip() or parts[0]
-            return {
+    # unique + sorted
+    return sorted({c.strip() for c in controls if isinstance(c, str) and c.strip()})
+
+# -------- Parsers --------
+
+def parse_prowler(obj: Dict[str, Any], cmap: Dict[str, Dict[str, List[str]]]) -> Optional[Dict[str, Any]]:
+    """
+    Expected fields (varies by prowler version):
+      CheckID / CheckId, Status, Severity, Service, ResourceId/ResourceArn, AccountId, Region, Message, Remediation, etc.
+    """
+    # Skip PASS/INFO unless you want to keep all; we keep FAIL/WARN-like by default
+    status_raw = str(obj.get("Status", obj.get("status", ""))).upper()
+    # Common FAIL markers
+    status = "FAIL" if status_raw in ("FAIL", "ALARM", "WARNING", "WARN") else status_raw or "UNKNOWN"
+
+    # Keep all findings; you can filter later in reporting if needed
+    check_id = coalesce(obj.get("CheckID"), obj.get("CheckId"), obj.get("CheckIDShort"), obj.get("Id"), default="unknown")
+    sev = safe_sev(obj.get("Severity"))
+    service = coalesce(obj.get("Service"), obj.get("Category"), default="unknown")
+    region = obj.get("Region") or obj.get("AwsRegion") or ""
+    account = obj.get("AccountId") or obj.get("Account") or ""
+    resource = coalesce(obj.get("ResourceId"), obj.get("ResourceArn"), obj.get("Resource") , default="")
+    title = coalesce(obj.get("CheckTitle"), obj.get("Title"), obj.get("CheckName"), default=str(check_id))
+    desc = coalesce(obj.get("Message"), obj.get("Description"), obj.get("Risk"), default="")
+    ts = coalesce(obj.get("Timestamp"), obj.get("CreatedAt"), obj.get("UpdatedAt"), default=now_iso())
+
+    compliance = map_compliance("prowler", str(check_id), obj, cmap)
+
+    norm = {
+        "scanner": "prowler",
+        "check_id": str(check_id),
+        "title": str(title),
+        "description": str(desc),
+        "severity": sev,
+        "status": status,  # normalized high-level status
+        "service": str(service),
+        "resource": str(resource),
+        "region": str(region),
+        "account": str(account),
+        "timestamp": str(ts),
+        "compliance": compliance,
+        "raw": {
+            "original": obj
+        }
+    }
+    return norm
+
+def parse_lynis_dat(text: str, cmap: Dict[str, Dict[str, List[str]]]) -> Iterable[Dict[str, Any]]:
+    """
+    Lynis .dat is key=value lines; findings often appear as:
+      suggestion[]=SSH-7408|Disable root login ...
+      warning[]=ACCT-9630|Enable process accounting ...
+    We'll parse suggestion[] and warning[] as failing statuses; ok[] as PASS.
+    """
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    for ln in lines:
+        if "suggestion[]=" in ln or "warning[]=" in ln:
+            # Format: key[]=ID|Message
+            _, payload = ln.split("=", 1)
+            parts = payload.split("|", 1)
+            test_id = parts[0].strip()
+            msg = parts[1].strip() if len(parts) > 1 else ""
+            sev = "medium" if "warning" in ln else "low"
+            status = "FAIL"
+            title = msg.split(".")[0][:140] if msg else test_id
+            compliance = map_compliance("lynis", test_id, {}, cmap)
+            yield {
                 "scanner": "lynis",
-                "host": host,
-                "category": "linux",
-                "test_id": code,
+                "check_id": test_id,
                 "title": title,
                 "description": msg,
+                "severity": sev,
                 "status": status,
-                "severity": severity,
-                "timestamp": None,
+                "service": "host",
+                "resource": os.uname().nodename if hasattr(os, "uname") else "host",
+                "region": "",
+                "account": "",
+                "timestamp": now_iso(),
+                "compliance": compliance,
+                "raw": {"line": ln}
+            }
+        elif "ok[]=" in ln:
+            # PASS entries (keep but low weight)
+            _, payload = ln.split("=", 1)
+            parts = payload.split("|", 1)
+            test_id = parts[0].strip()
+            msg = parts[1].strip() if len(parts) > 1 else ""
+            title = msg.split(".")[0][:140] if msg else test_id
+            compliance = map_compliance("lynis", test_id, {}, cmap)
+            yield {
+                "scanner": "lynis",
+                "check_id": test_id,
+                "title": title,
+                "description": msg,
+                "severity": "info",
+                "status": "PASS",
+                "service": "host",
+                "resource": os.uname().nodename if hasattr(os, "uname") else "host",
+                "region": "",
+                "account": "",
+                "timestamp": now_iso(),
+                "compliance": compliance,
+                "raw": {"line": ln}
             }
 
-        if k.startswith("warning["):
-            records.append(_rec("Warning", "fail", "medium"))
-        elif k.startswith("suggestion["):
-            records.append(_rec("Suggestion", "warn", "low"))
-        elif k.startswith("hint["):
-            records.append(_rec("Hint", "info", "info"))
+# -------- Aggregation / Risk / Compliance Summary --------
 
-    return records
-
-def load_json(path: str) -> Any:
-    """Load JSON; if it fails, try NDJSON (one JSON object per line)."""
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    try:
-        return json.loads(content)
-    except json.JSONDecodeError:
-        lines = [ln.strip() for ln in content.splitlines() if ln.strip()]
-        arr = []
-        for ln in lines:
-            try:
-                arr.append(json.loads(ln))
-            except Exception:
-                pass
-        return arr
-
-def detect_shape_and_iter(raw: Any) -> Iterable[Dict[str, Any]]:
-    """Yield dict records from common shapes."""
-    if isinstance(raw, list):
-        for r in raw:
-            if isinstance(r, dict):
-                yield r
-        return
-    if isinstance(raw, dict):
-        for key in ("findings","results","records","items","Checks"):
-            val = raw.get(key)
-            if isinstance(val, list):
-                for r in val:
-                    if isinstance(r, dict):
-                        yield r
-                return
-        if raw and all(isinstance(v, dict) for v in raw.values()):
-            for r in raw.values():
-                yield r
-            return
-    return []
-
-# ---------------------------
-# Adapter routing / dedupe
-# ---------------------------
-
-def pick_adapter(record: Dict[str, Any]) -> str:
-    s = " ".join(record.keys()).lower()
-    if any(k in record for k in ("check_id","check_title")) or "prowler" in json.dumps(record).lower():
-        return "prowler"
-    if any(k in record for k in ("test_id","lynis")) or record.get("scanner") == "lynis":
-        return "lynis"
-    src = (record.get("source") or "").lower()
-    if src == "aws": return "prowler"
-    if src == "linux": return "lynis"
-    if any(k in s for k in ("host","hostname","ssh","pam","sysctl")):
-        return "lynis"
-    return "prowler"
-
-def make_dedupe_key(f: UnifiedFinding) -> str:
-    parts = [
-        f.get("source") or "",
-        f.get("scanner") or "",
-        f.get("asset") or "",
-        f.get("service") or "",
-        f.get("control_id") or "",
-        f.get("title") or "",
-        f.get("status") or "",
-    ]
-    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
-
-# ---------------------------
-# HTML report (grouped + colored; columns derive from SCHEMA_FIELDS)
-# ---------------------------
-
-def _counts(findings: List[UnifiedFinding]) -> Dict[str, Dict[str, int]]:
-    counts: Dict[str, Dict[str, int]] = {}
+def summarize(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+    total = 0
     for f in findings:
-        source = (f.get("source") or "unknown").lower()
-        status = (f.get("status") or "info").lower()
-        counts.setdefault(source, {})[status] = counts.setdefault(source, {}).get(status, 0) + 1
-        counts.setdefault("TOTAL", {})[status] = counts.setdefault("TOTAL", {}).get(status, 0) + 1
-    return counts
+        sev = f.get("severity", "info")
+        if sev not in counts:
+            sev = "info"
+        counts[sev] += 1
+        total += 1
 
-def _render_counts_table(counts: Dict[str, Dict[str, int]]) -> str:
-    statuses = ["fail","warn","pass","info"]
-    rows = []
-    for src in sorted([k for k in counts.keys() if k != "TOTAL"]) + ["TOTAL"]:
-        cells = [f"<td class='src'>{src}</td>"]
-        for st in statuses:
-            n = counts.get(src, {}).get(st, 0)
-            cells.append(f"<td class='status {st}'>{n}</td>")
-        rows.append("<tr>" + "".join(cells) + "</tr>")
-    head = "<tr><th>source</th>" + "".join(f"<th>{s}</th>" for s in statuses) + "</tr>"
-    return f"<table class='summary'><thead>{head}</thead><tbody>{''.join(rows)}</tbody></table>"
+    # Average risk = mean of weights across all findings (including info=0)
+    # You can filter PASS here if desired; we keep everything for transparency.
+    weights = [weight_for(f.get("severity", "info")) for f in findings]
+    avg_risk = round(sum(weights) / max(1, len(weights)), 2)
 
-def _severity_class(sev: str) -> str:
-    s = (sev or "").lower()
-    if s in {"critical","high"}: return "sev-high"
-    if s == "medium": return "sev-med"
-    if s == "low": return "sev-low"
-    return "sev-info"
+    # Simple A–F grade
+    # 0–0.5 A, 0.51–1.5 B, 1.51–2.5 C, 2.51–3.5 D, 3.51–4.5 E, >4.5 F
+    def letter(r: float) -> str:
+        if r <= 0.5: return "A"
+        if r <= 1.5: return "B"
+        if r <= 2.5: return "C"
+        if r <= 3.5: return "D"
+        if r <= 4.5: return "E"
+        return "F"
 
-def write_html(findings: List[UnifiedFinding], out_path: str) -> None:
-    groups = {
-        "AWS (prowler)": [f for f in findings if (f.get("source") == "aws")],
-        "Linux (lynis)": [f for f in findings if (f.get("source") == "linux")],
-        "Other": [f for f in findings if (f.get("source") not in ("aws","linux"))],
+    return {
+        "totals": {"findings": total, **counts},
+        "risk": {"avg": avg_risk, "grade": letter(avg_risk)}
     }
-    cols = [c for c in SCHEMA_FIELDS if c != "raw"]
 
-    def esc(x: Any) -> str:
-        return (str(x).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;"))
+def build_compliance_summary(findings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Structure:
+    {
+      "CIS_AWS_1.2": {
+        "failing_controls": { "CIS_AWS_1.2:3.1": 2, ... },
+        "passing_controls": { ... }
+      },
+      "NIST_800-53": { ... }
+    }
+    """
+    agg: Dict[str, Dict[str, Dict[str, int]]] = defaultdict(lambda: {"failing_controls": defaultdict(int),
+                                                                     "passing_controls": defaultdict(int)})
+    for f in findings:
+        status = (f.get("status") or "").upper()
+        for ctrl in f.get("compliance", []) or []:
+            fw = ctrl.split(":", 1)[0] if ":" in ctrl else "Unknown"
+            if status in ("FAIL", "ALARM", "WARNING", "SUGGESTION"):
+                agg[fw]["failing_controls"][ctrl] += 1
+            else:
+                agg[fw]["passing_controls"][ctrl] += 1
 
-    section_html = []
-    for title, items in groups.items():
-        if not items:
-            continue
-        def sort_key(f: UnifiedFinding):
-            order = {"fail":0, "warn":1, "pass":2, "info":3}
-            sev_order = {"critical":0, "high":1, "medium":2, "low":3, "info":4}
-            return (order.get((f.get("status") or "info").lower(), 9),
-                    sev_order.get((f.get("severity") or "info").lower(), 9),
-                    f.get("title") or "")
-        items = sorted(items, key=sort_key)
+    # Convert nested defaultdicts to plain dicts
+    def plain(d):
+        if isinstance(d, defaultdict):
+            d = {k: plain(v) for k, v in d.items()}
+        elif isinstance(d, dict):
+            d = {k: plain(v) for k, v in d.items()}
+        return d
 
-        rows_html = []
-        for f in items:
-            cells = []
-            for c in cols:
-                val = f.get(c, "")
-                if c == "severity":
-                    cells.append(f"<td class='{_severity_class(str(val))}'>{esc(val)}</td>")
-                elif c == "status":
-                    cells.append(f"<td class='status {(esc((val or '').lower()))}'>{esc(val)}</td>")
-                else:
-                    cells.append(f"<td>{esc(val)}</td>")
-            rows_html.append("<tr>" + "".join(cells) + "</tr>")
+    return plain(agg)
 
-        head_html = "<tr>" + "".join(f"<th>{esc(c)}</th>" for c in cols) + "</tr>"
-        table_html = f"<h2>{esc(title)}</h2><table><thead>{head_html}</thead><tbody>{''.join(rows_html)}</tbody></table>"
-        section_html.append(table_html)
+# -------- Main --------
 
-    counts = _counts(findings)
-    summary_html = _render_counts_table(counts)
-
-    html = f"""
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Normalized Findings Report</title>
-  <style>
-    body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }}
-    h1 {{ margin-top: 0; }}
-    h2 {{ margin: 24px 0 8px; }}
-    table {{ border-collapse: collapse; width: 100%; margin-bottom: 16px; }}
-    th, td {{ border: 1px solid #ddd; padding: 8px; font-size: 14px; vertical-align: top; }}
-    th {{ background: #f5f5f5; text-align: left; position: sticky; top: 0; }}
-    .meta {{ color: #555; margin-bottom: 12px; }}
-    .summary th, .summary td {{ text-align: center; }}
-    .status.fail {{ background: #fde2e1; font-weight: 600; }}
-    .status.warn {{ background: #fff4d6; font-weight: 600; }}
-    .status.pass {{ background: #e7f6ec; }}
-    .status.info {{ background: #eef2f7; }}
-    .sev-high {{ background: #ffe5e9; }}
-    .sev-med  {{ background: #fff4d6; }}
-    .sev-low  {{ background: #eef7ff; }}
-    .sev-info {{ background: #f6f6f6; }}
-    .src {{ text-transform: uppercase; font-weight: 600; }}
-  </style>
-</head>
-<body>
-  <h1>Normalized Findings</h1>
-  <div class="meta">Generated: {esc(now_iso())} • Total findings: {len(findings)}</div>
-  <h2>Summary</h2>
-  {summary_html}
-  {''.join(section_html) if section_html else '<p>No findings.</p>'}
-</body>
-</html>
-"""
-    with open(out_path, "w", encoding="utf-8") as f:
-        f.write(html)
-
-# ---------------------------
-# Normalize + write
-# ---------------------------
-
-def normalize_files(paths: List[str]) -> List[UnifiedFinding]:
-    normalized: List[UnifiedFinding] = []
-    seen: set[str] = set()
-
-    for p in paths:
-        try:
-            if p.lower().endswith(".dat"):
-                for rec in parse_lynis_dat(p):
-                    uf = adapt_lynis(rec)
-                    key = make_dedupe_key(uf)
-                    if key in seen: 
-                        continue
-                    seen.add(key)
-                    normalized.append(uf)
-                continue
-            raw = load_json(p)
-        except Exception as e:
-            print(f"[warn] Could not read {p}: {e}", file=sys.stderr)
-            continue
-
-        for rec in detect_shape_and_iter(raw):
-            adapter = pick_adapter(rec)
-            uf = adapt_prowler(rec) if adapter == "prowler" else adapt_lynis(rec)
-            key = make_dedupe_key(uf)
-            if key in seen:
-                continue
-            seen.add(key)
-            normalized.append(uf)
-
-    return normalized
-
-def write_outputs(findings: List[UnifiedFinding], out_dir: str) -> None:
-    os.makedirs(out_dir, exist_ok=True)
-
-    json_path = os.path.join(out_dir, "normalized_findings.json")
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(findings, f, indent=2, ensure_ascii=False)
-
-    cols = [c for c in SCHEMA_FIELDS if c != "raw"]
-    csv_path = os.path.join(out_dir, "normalized_findings.csv")
-
-    def csv_escape(val: Any) -> str:
-        s = "" if val is None else str(val)
-        if any(ch in s for ch in [",", '"', "\n", "\r"]):
-            s = '"' + s.replace('"', '""') + '"'
-        return s
-
-    with open(csv_path, "w", encoding="utf-8") as f:
-        f.write(",".join(cols) + "\n")
-        for row in findings:
-            f.write(",".join(csv_escape(row.get(c)) for c in cols) + "\n")
-
-    html_path = os.path.join(out_dir, "report.html")
-    write_html(findings, html_path)
-
-    print(f"[ok] Wrote: {json_path}")
-    print(f"[ok] Wrote: {csv_path}")
-    print(f"[ok] Wrote: {html_path}")
-
-# ---------------------------
-# Routing / dedupe helpers / CLI
-# ---------------------------
-
-def make_dedupe_key(f: UnifiedFinding) -> str:
-    parts = [
-        f.get("source") or "",
-        f.get("scanner") or "",
-        f.get("asset") or "",
-        f.get("service") or "",
-        f.get("control_id") or "",
-        f.get("title") or "",
-        f.get("status") or "",
-    ]
-    return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
-
-def pick_adapter(record: Dict[str, Any]) -> str:
-    s = " ".join(record.keys()).lower()
-    if any(k in record for k in ("check_id","check_title")) or "prowler" in json.dumps(record).lower():
-        return "prowler"
-    if any(k in record for k in ("test_id","lynis")) or record.get("scanner") == "lynis":
-        return "lynis"
-    src = (record.get("source") or "").lower()
-    if src == "aws": return "prowler"
-    if src == "linux": return "lynis"
-    if any(k in s for k in ("host","hostname","ssh","pam","sysctl")):
-        return "lynis"
-    return "prowler"
-
-def parse_args() -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description="Normalize scanner outputs to a unified schema and generate reports.")
+def main():
+    ap = argparse.ArgumentParser(description="Normalize scanner outputs into a unified JSON with risk & compliance mapping.")
     ap.add_argument("--in", dest="inputs", nargs="+", required=True,
-                    help="Input file(s): prowler JSON, lynis-report.dat, combined JSON, etc.")
-    ap.add_argument("--out", dest="out_dir", required=True, help="Output directory for normalized files")
-    return ap.parse_args()
+                    help="Input files: prowler JSON (*.json), lynis .dat, or a combined JSON.")
+    ap.add_argument("--out", dest="out_dir", default="out", help="Output directory (default: out)")
+    ap.add_argument("--compliance-map", dest="cmap_path", default="compliance_map.yaml",
+                    help="YAML map of check IDs/patterns to compliance controls (default: compliance_map.yaml)")
+    args = ap.parse_args()
 
-def main() -> None:
-    args = parse_args()
-    findings = normalize_files(args.inputs)
-    if not findings:
-        print("[warn] No findings parsed. Check input file(s).", file=sys.stderr)
-    write_outputs(findings, args.out_dir)
+    out_dir = args.out_dir
+    ensure_dir(out_dir)
+
+    cmap = load_compliance_map(args.cmap_path)
+
+    findings: List[Dict[str, Any]] = []
+
+    for path in args.inputs:
+        if not os.path.exists(path):
+            print(f"[WARN] input not found: {path}", file=sys.stderr)
+            continue
+
+        # Heuristic: JSON → prowler or combined; .dat/.txt → lynis
+        lower = path.lower()
+        try:
+            if lower.endswith(".json"):
+                data = load_json_file(path)
+                # Prowler may emit a list, or a dict with 'Findings'/'Results'
+                objs: List[Dict[str, Any]] = []
+                if isinstance(data, list):
+                    objs = [x for x in data if isinstance(x, dict)]
+                elif isinstance(data, dict):
+                    # If it's a combined structure, flatten best-effort
+                    if "Findings" in data and isinstance(data["Findings"], list):
+                        objs = [x for x in data["Findings"] if isinstance(x, dict)]
+                    elif "Results" in data and isinstance(data["Results"], list):
+                        objs = [x for x in data["Results"] if isinstance(x, dict)]
+                    else:
+                        # try to guess it's already normalized
+                        if "scanner" in data and "check_id" in data:
+                            objs = [data]
+                        else:
+                            # pick all dicts anywhere shallow
+                            for v in data.values():
+                                if isinstance(v, list):
+                                    objs.extend([x for x in v if isinstance(x, dict)])
+                for obj in objs:
+                    norm = parse_prowler(obj, cmap)
+                    if norm:
+                        findings.append(norm)
+
+            elif lower.endswith(".dat") or lower.endswith(".txt") or "lynis" in lower:
+                text = load_text_file(path)
+                findings.extend(list(parse_lynis_dat(text, cmap)))
+
+            else:
+                # Fallback: try JSON parse, else treat as text lynis style
+                try:
+                    data = load_json_file(path)
+                    if isinstance(data, list):
+                        for obj in data:
+                            if isinstance(obj, dict):
+                                norm = parse_prowler(obj, cmap)
+                                if norm:
+                                    findings.append(norm)
+                    elif isinstance(data, dict):
+                        # Already normalized?
+                        arr = data.get("findings")
+                        if isinstance(arr, list):
+                            findings.extend([x for x in arr if isinstance(x, dict)])
+                except Exception:
+                    text = load_text_file(path)
+                    findings.extend(list(parse_lynis_dat(text, cmap)))
+
+        except Exception as e:
+            print(f"[WARN] failed to parse {path}: {e}", file=sys.stderr)
+
+    # Sort findings by severity DESC then title
+    sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    findings.sort(key=lambda f: (sev_order.get(f.get("severity", "info"), 9), f.get("title", "")))
+
+    # Compute summaries
+    summary = summarize(findings)
+    compliance_summary = build_compliance_summary(findings)
+
+    # Write outputs
+    normalized_path = os.path.join(out_dir, "normalized_findings.json")
+    compliance_path = os.path.join(out_dir, "compliance_summary.json")
+
+    with open(normalized_path, "w", encoding="utf-8") as f:
+        json.dump(findings, f, indent=2)
+
+    with open(compliance_path, "w", encoding="utf-8") as f:
+        json.dump(compliance_summary, f, indent=2)
+
+    # One-line console summary for Jenkins logs
+    print(f"[normalize] findings={summary['totals']['findings']} "
+          f"crit={summary['totals']['critical']} high={summary['totals']['high']} "
+          f"med={summary['totals']['medium']} low={summary['totals']['low']} "
+          f"info={summary['totals']['info']} avgRisk={summary['risk']['avg']} "
+          f"grade={summary['risk']['grade']} -> "
+          f"{os.path.relpath(normalized_path)} , {os.path.relpath(compliance_path)}")
 
 if __name__ == "__main__":
     main()
