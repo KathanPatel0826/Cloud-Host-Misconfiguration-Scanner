@@ -1,10 +1,12 @@
 pipeline {
   agent any
 
-  parameters {
-    string(name: 'MAX_TOTAL_SCORE', defaultValue: '80', description: 'Fail if total risk score exceeds this')
-    string(name: 'MIN_PASS_GRADE', defaultValue: 'C', description: 'Fail if grade is below this (D/F)')
-  }
+
+environment {
+  MAX_TOTAL_SCORE = '80'
+  MIN_PASS_GRADE  = 'C'
+}
+
 
   environment {
     NORMALIZED_JSON = 'out/normalized_findings.json'
