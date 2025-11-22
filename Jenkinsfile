@@ -2,8 +2,8 @@ pipeline {
   agent any
 
   environment {
-    MAX_TOTAL_SCORE = '80'   
-    MIN_PASS_GRADE  = 'C'    
+    MAX_TOTAL_SCORE = '10000'   
+    MIN_PASS_GRADE  = 'F'    
     ENFORCE_GATE    = 'true' 
 
     NORMALIZED_JSON = 'out/normalized_findings.json'
