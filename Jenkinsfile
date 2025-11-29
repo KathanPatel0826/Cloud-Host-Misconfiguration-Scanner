@@ -94,7 +94,7 @@ pipeline {
       }
     }
 
-    // 🔄 NEW: push risk_summary.json to the Flask backend
+    // NEW: push risk_summary.json to the Flask backend
     stage('Push to Dashboard') {
       when {
         expression { return fileExists('out/risk_summary.json') }
@@ -102,7 +102,7 @@ pipeline {
       steps {
         script {
           def backendUrl = 'http://192.168.31.128:8088/ingest'   // use the IP shown by server.py
-          def apiToken   = 'my-super-secret-token-123'           // same as API_TOKEN in server.py
+          def apiToken   = 'MYTOKEN'           // same as API_TOKEN in server.py
 
           sh """
             python3 - << 'EOF'
@@ -122,8 +122,8 @@ print('Wrote', out_path)
 EOF
 
             curl -sS -X POST ${backendUrl} \
-              -H 'Content-Type: application/json' \
-              -H 'X-API-KEY: ${apiToken}' \
+              -H "Content-Type: application/json" \
+              -H "X-API-KEY: ${apiToken}" \
               --data @out/risk_summary_with_meta.json || echo "Dashboard push failed (non-fatal)"
           """
         }
