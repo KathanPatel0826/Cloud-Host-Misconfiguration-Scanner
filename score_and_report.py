@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
-import argparse, json, os, statistics
-from collections import defaultdict, Counter
+import argparse
+import json
+import os
+from collections import Counter, defaultdict
 from datetime import datetime
 from jinja2 import Template
 
-SEVERITY_WEIGHT = {"critical":10,"high":7,"medium":4,"low":1,"info":0}
+# ----------------------------
+# Config
+# ----------------------------
+
+SEVERITY_WEIGHT = {
+    "critical": 10,
+    "high": 7,
+    "medium": 4,
+    "low": 1,
+    "info": 0,
+}
 
 GRADE_THRESHOLDS = [
     ("A", 0, 10),
@@ -40,7 +52,7 @@ HTML_TEMPLATE = r"""
   </style>
 </head>
 <body>
-  <h1>Cloud & Host Misconfiguration Risk Report</h1>
+  <h1>Cloud &amp; Host Misconfiguration Risk Report</h1>
   <div class="muted small">Generated: {{ generated_at }}</div>
 
   <div class="section">
@@ -52,7 +64,7 @@ HTML_TEMPLATE = r"""
   <div class="section">
     <h2>Severity Breakdown</h2>
     <table>
-      <thead><tr><th>Severity</th><th>Count</th><th>Weight</th></tr></thead>
+      <thead><tr><th>Severity</th><th>Count</th><th>Weighted Score</th></tr></thead>
       <tbody>
         {% for sev in ["critical","high","medium","low","info"] %}
           <tr>
@@ -92,7 +104,7 @@ HTML_TEMPLATE = r"""
             <td><span class="badge sev-{{ f['severity'] }}">{{ f['severity']|capitalize }}</span></td>
             <td>{{ f.get("asset") or "—" }}</td>
             <td>{{ f.get("service") or "—" }}</td>
-            <td>{{ f['_score'] }}</td>
+            <td>{{ f["_score"] }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -120,7 +132,7 @@ HTML_TEMPLATE = r"""
             <td><span class="badge sev-{{ f['severity'] }}">{{ f['severity']|capitalize }}</span></td>
             <td>{{ f.get("asset") or "—" }}</td>
             <td>{{ f.get("service") or "—" }}</td>
-            <td>{{ f['_score'] }}</td>
+            <td>{{ f["_score"] }}</td>
           </tr>
         {% endfor %}
       </tbody>
@@ -130,6 +142,10 @@ HTML_TEMPLATE = r"""
 </body>
 </html>
 """
+
+# ----------------------------
+# Scoring helpers
+# ----------------------------
 
 def score_finding(f):
     sev = (f.get("severity") or "").lower().strip()
@@ -144,21 +160,30 @@ def grade_from_score(total):
             return letter
     return "F"
 
+# ----------------------------
+# Main
+# ----------------------------
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--in", dest="infile", required=True, help="Normalized findings JSON (list)")
-    ap.add_argument("--out", dest="outdir", required=True, help="Output directory")
-    ap.add_argument("--pdf", action="store_true", help="Also emit PDF using WeasyPrint if available")
+    ap.add_argument("--in", dest="infile", required=True,
+                    help="Normalized findings JSON (list)")
+    ap.add_argument("--out", dest="outdir", required=True,
+                    help="Output directory")
+    ap.add_argument("--pdf", action="store_true",
+                    help="Also emit PDF using WeasyPrint if available")
     args = ap.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)
+
     with open(args.infile, "r") as fh:
         findings = json.load(fh)
 
-    # Ensure severity field is standardized and compute scores
     cleaned = []
     counts = Counter()
     weight_by_sev = defaultdict(float)
+
+    # Normalize severity and compute scores
     for f in findings:
         sev = (f.get("severity") or "info").lower().strip()
         if sev not in SEVERITY_WEIGHT:
@@ -169,30 +194,55 @@ def main():
         counts[sev] += 1
         weight_by_sev[sev] += f["_score"]
 
-    # Aggregations
     total_score = round(sum(f["_score"] for f in cleaned), 2)
     grade = grade_from_score(total_score)
-    by_asset = defaultdict(lambda: {"score":0.0,"count":0})
+
+    # ---------- NEW: write risk_summary.json for dashboard ----------
+    summary = {
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "score": total_score,
+        "grade": grade,
+        "counts": {
+            "critical": int(counts.get("critical", 0)),
+            "high": int(counts.get("high", 0)),
+            "medium": int(counts.get("medium", 0)),
+            "low": int(counts.get("low", 0)),
+            "info": int(counts.get("info", 0)),
+        },
+    }
+    summary_path = os.path.join(args.outdir, "risk_summary.json")
+    with open(summary_path, "w") as sf:
+        json.dump(summary, sf, indent=2)
+    print(f"Wrote: {summary_path}")
+    # ----------------- end dashboard summary block -------------------
+
+    # Aggregations
+    by_asset = defaultdict(lambda: {"score": 0.0, "count": 0})
     for f in cleaned:
         key = f.get("asset") or "—"
         by_asset[key]["score"] += f["_score"]
         by_asset[key]["count"] += 1
+
     assets_top = [
-        {"asset": a, "score": round(v["score"],2), "count": v["count"]}
-        for a,v in sorted(by_asset.items(), key=lambda kv: kv[1]["score"], reverse=True)[:10]
+        {"asset": a, "score": round(v["score"], 2), "count": v["count"]}
+        for a, v in sorted(by_asset.items(), key=lambda kv: kv[1]["score"], reverse=True)[:10]
     ]
 
     top_findings = sorted(cleaned, key=lambda x: x["_score"], reverse=True)[:15]
 
-    grading_text = ", ".join([f"{g}: {lo}–{hi}" for g,lo,hi in GRADE_THRESHOLDS])
+    grading_text = ", ".join([f"{g}: {lo}–{hi}" for g, lo, hi in GRADE_THRESHOLDS])
+
     html = Template(HTML_TEMPLATE).render(
         generated_at=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
         totals={"findings": len(cleaned), "score": total_score, "grade": grade},
-        breakdown={"counts": dict(counts), "weights": {k: round(v,2) for k,v in weight_by_sev.items()}},
+        breakdown={
+            "counts": dict(counts),
+            "weights": {k: round(v, 2) for k, v in weight_by_sev.items()},
+        },
         assets_top=assets_top,
         top_findings=top_findings,
         all_findings=cleaned,
-        grading_text=grading_text
+        grading_text=grading_text,
     )
 
     html_path = os.path.join(args.outdir, "risk_report.html")
@@ -204,11 +254,13 @@ def main():
             from weasyprint import HTML as WHTML
             pdf_path = os.path.join(args.outdir, "risk_report.pdf")
             WHTML(string=html).write_pdf(pdf_path)
-            print(f"Wrote: {html_path}\nWrote: {pdf_path}")
+            print(f"Wrote: {html_path}")
+            print(f"Wrote: {pdf_path}")
         except Exception as e:
-            print(f"Wrote: {html_path}\nPDF generation failed (install WeasyPrint deps). Error: {e}")
+            print(f"Wrote: {html_path}")
+            print(f"PDF generation failed (install WeasyPrint deps). Error: {e}")
     else:
         print(f"Wrote: {html_path}")
-        
+
 if __name__ == "__main__":
     main()
