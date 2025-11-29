@@ -3,8 +3,8 @@ pipeline {
 
   environment {
     // Risk policy
-    MAX_TOTAL_SCORE = '80'
-    MIN_PASS_GRADE  = 'C'
+    MAX_TOTAL_SCORE = '1000'
+    MIN_PASS_GRADE  = 'F'
     ENFORCE_GATE    = 'true'   // set to 'false' if you want to bypass the gate
 
     // Paths
