@@ -4,7 +4,7 @@ import json
 import os
 from collections import Counter, defaultdict
 from datetime import datetime
-from pathlib import Path  # <-- added
+from pathlib import Path
 from jinja2 import Template
 
 # ----------------------------
@@ -145,17 +145,13 @@ HTML_TEMPLATE = r"""
 """
 
 # ----------------------------
-# Lynis helpers – patch Linux "Suggestion" titles
+# Lynis helpers – replace "Suggestion" with real description
 # ----------------------------
 
 LYNIS_REPORT = Path("reports/lynis-report.dat")
 
 
 def get_lynis_descriptions():
-    """
-    Read Lynis report.dat and collect descriptions for suggestion[]/warning[] lines.
-    Returns a list of description strings in order.
-    """
     descriptions = []
     if not LYNIS_REPORT.exists():
         return descriptions
@@ -165,32 +161,24 @@ def get_lynis_descriptions():
             line = line.strip()
             if not line:
                 continue
-
             if line.startswith("suggestion[]=") or line.startswith("warning[]="):
-                # payload: TESTID|DESCRIPTION|...
                 payload = line.split("=", 1)[1]
                 parts = payload.split("|")
                 if len(parts) >= 2:
                     descriptions.append(parts[1].strip())
-
     return descriptions
 
 
 def patch_linux_titles(findings):
-    """
-    For Linux (kaliscanner) findings whose title is just 'Suggestion',
-    replace the title with the corresponding Lynis description.
-    """
     descs = get_lynis_descriptions()
     if not descs:
         return
-
     idx = 0
     for f in findings:
         if (
-            (f.get("asset") == "kaliscanner")
-            and (f.get("service") == "linux")
-            and (f.get("title") in (None, "", "Suggestion"))
+            f.get("asset") == "kaliscanner"
+            and f.get("service") == "linux"
+            and f.get("title") in (None, "", "Suggestion")
             and idx < len(descs)
         ):
             f["title"] = descs[idx]
@@ -232,7 +220,7 @@ def main():
     with open(args.infile, "r") as fh:
         findings = json.load(fh)
 
-    # 🔹 Patch Linux 'Suggestion' titles using Lynis descriptions
+    # 🔹 Fix Linux "Suggestion" titles before scoring
     patch_linux_titles(findings)
 
     cleaned = []
@@ -253,7 +241,6 @@ def main():
     total_score = round(sum(f["_score"] for f in cleaned), 2)
     grade = grade_from_score(total_score)
 
-    # ---------- risk_summary.json for dashboard ----------
     summary = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "score": total_score,
@@ -270,9 +257,7 @@ def main():
     with open(summary_path, "w") as sf:
         json.dump(summary, sf, indent=2)
     print(f"Wrote: {summary_path}")
-    # ----------------- end dashboard summary block -------------------
 
-    # Aggregations
     by_asset = defaultdict(lambda: {"score": 0.0, "count": 0})
     for f in cleaned:
         key = f.get("asset") or "—"
