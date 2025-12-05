@@ -4,6 +4,7 @@ import json
 import os
 from collections import Counter, defaultdict
 from datetime import datetime
+from pathlib import Path  # <-- added
 from jinja2 import Template
 
 # ----------------------------
@@ -144,6 +145,58 @@ HTML_TEMPLATE = r"""
 """
 
 # ----------------------------
+# Lynis helpers – patch Linux "Suggestion" titles
+# ----------------------------
+
+LYNIS_REPORT = Path("reports/lynis-report.dat")
+
+
+def get_lynis_descriptions():
+    """
+    Read Lynis report.dat and collect descriptions for suggestion[]/warning[] lines.
+    Returns a list of description strings in order.
+    """
+    descriptions = []
+    if not LYNIS_REPORT.exists():
+        return descriptions
+
+    with LYNIS_REPORT.open(errors="ignore") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith("suggestion[]=") or line.startswith("warning[]="):
+                # payload: TESTID|DESCRIPTION|...
+                payload = line.split("=", 1)[1]
+                parts = payload.split("|")
+                if len(parts) >= 2:
+                    descriptions.append(parts[1].strip())
+
+    return descriptions
+
+
+def patch_linux_titles(findings):
+    """
+    For Linux (kaliscanner) findings whose title is just 'Suggestion',
+    replace the title with the corresponding Lynis description.
+    """
+    descs = get_lynis_descriptions()
+    if not descs:
+        return
+
+    idx = 0
+    for f in findings:
+        if (
+            (f.get("asset") == "kaliscanner")
+            and (f.get("service") == "linux")
+            and (f.get("title") in (None, "", "Suggestion"))
+            and idx < len(descs)
+        ):
+            f["title"] = descs[idx]
+            idx += 1
+
+# ----------------------------
 # Scoring helpers
 # ----------------------------
 
@@ -179,6 +232,9 @@ def main():
     with open(args.infile, "r") as fh:
         findings = json.load(fh)
 
+    # 🔹 Patch Linux 'Suggestion' titles using Lynis descriptions
+    patch_linux_titles(findings)
+
     cleaned = []
     counts = Counter()
     weight_by_sev = defaultdict(float)
@@ -197,7 +253,7 @@ def main():
     total_score = round(sum(f["_score"] for f in cleaned), 2)
     grade = grade_from_score(total_score)
 
-    # ---------- NEW: write risk_summary.json for dashboard ----------
+    # ---------- risk_summary.json for dashboard ----------
     summary = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "score": total_score,
