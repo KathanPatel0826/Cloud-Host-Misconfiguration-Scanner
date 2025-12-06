@@ -2,9 +2,12 @@
 import argparse
 import json
 import os
+import re
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
+
+import yaml
 from jinja2 import Template
 
 # ----------------------------
@@ -97,7 +100,7 @@ HTML_TEMPLATE = r"""
   <div class="section">
     <h2>Top Critical Findings</h2>
     <table>
-      <thead><tr><th>Title</th><th>Severity</th><th>Asset</th><th>Service</th><th>Score</th></tr></thead>
+      <thead><tr><th>Title</th><th>Severity</th><th>Asset</th><th>Service</th><th>Compliance</th><th>Score</th></tr></thead>
       <tbody>
         {% for f in top_findings %}
           <tr>
@@ -105,6 +108,13 @@ HTML_TEMPLATE = r"""
             <td><span class="badge sev-{{ f['severity'] }}">{{ f['severity']|capitalize }}</span></td>
             <td>{{ f.get("asset") or "—" }}</td>
             <td>{{ f.get("service") or "—" }}</td>
+            <td>
+              {% if f.get("compliance") %}
+                {{ ", ".join(f.get("compliance")) }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
             <td>{{ f["_score"] }}</td>
           </tr>
         {% endfor %}
@@ -124,7 +134,17 @@ HTML_TEMPLATE = r"""
   <div class="section">
     <h2>Appendix: All Findings</h2>
     <table>
-      <thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Asset</th><th>Service</th><th>Score</th></tr></thead>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Severity</th>
+          <th>Asset</th>
+          <th>Service</th>
+          <th>Compliance</th>
+          <th>Score</th>
+        </tr>
+      </thead>
       <tbody>
         {% for f in all_findings %}
           <tr>
@@ -133,6 +153,13 @@ HTML_TEMPLATE = r"""
             <td><span class="badge sev-{{ f['severity'] }}">{{ f['severity']|capitalize }}</span></td>
             <td>{{ f.get("asset") or "—" }}</td>
             <td>{{ f.get("service") or "—" }}</td>
+            <td>
+              {% if f.get("compliance") %}
+                {{ ", ".join(f.get("compliance")) }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
             <td>{{ f["_score"] }}</td>
           </tr>
         {% endfor %}
@@ -145,7 +172,7 @@ HTML_TEMPLATE = r"""
 """
 
 # ----------------------------
-# Lynis helpers – replace "Suggestion" with real description
+# Lynis helpers – replace "Suggestion" with description
 # ----------------------------
 
 LYNIS_REPORT = Path("reports/lynis-report.dat")
@@ -185,6 +212,62 @@ def patch_linux_titles(findings):
             idx += 1
 
 # ----------------------------
+# Compliance mapping helpers
+# ----------------------------
+
+COMPLIANCE_MAP_PATH = Path("compliance_map.yaml")
+
+def load_compliance_patterns():
+    """
+    Flattens compliance_map.yaml into a list of (compiled_regex, [controls]).
+    Works for both exact IDs and regex keys.
+    """
+    patterns = []
+    if not COMPLIANCE_MAP_PATH.exists():
+        return patterns
+
+    raw = yaml.safe_load(COMPLIANCE_MAP_PATH.read_text()) or {}
+    # raw is like { "prowler": { "rule_id": [..], "iam_password_policy_.*": [..] }, "lynis": { ... } }
+    for section, rules in raw.items():
+        if not isinstance(rules, dict):
+            continue
+        for key, controls in rules.items():
+            try:
+                regex = re.compile(key)
+            except re.error:
+                regex = re.compile(re.escape(key))
+            patterns.append((regex, controls or []))
+    return patterns
+
+COMPLIANCE_PATTERNS = load_compliance_patterns()
+
+
+def attach_compliance(findings):
+    """
+    For each finding with an 'id', attach a list of mapped controls under 'compliance'.
+    """
+    if not COMPLIANCE_PATTERNS:
+        for f in findings:
+            f["compliance"] = []
+        return
+
+    for f in findings:
+        rid = f.get("id") or ""
+        matches = []
+        if rid:
+            for regex, controls in COMPLIANCE_PATTERNS:
+                if regex.search(rid):
+                    matches.extend(controls)
+        # dedupe while preserving order
+        seen = set()
+        uniq = []
+        for c in matches:
+            if c not in seen:
+                seen.add(c)
+                uniq.append(c)
+        f["compliance"] = uniq
+
+# ----------------------------
 # Scoring helpers
 # ----------------------------
 
@@ -194,6 +277,7 @@ def score_finding(f):
     ac = float(f.get("asset_criticality", 1.0) or 1.0)
     conf = float(f.get("confidence", 1.0) or 1.0)
     return round(w * ac * conf, 2)
+
 
 def grade_from_score(total):
     for letter, lo, hi in GRADE_THRESHOLDS:
@@ -220,8 +304,11 @@ def main():
     with open(args.infile, "r") as fh:
         findings = json.load(fh)
 
-    # 🔹 Fix Linux "Suggestion" titles before scoring
+    # 1) Fix Linux titles from Lynis
     patch_linux_titles(findings)
+
+    # 2) Attach compliance mapping
+    attach_compliance(findings)
 
     cleaned = []
     counts = Counter()
@@ -241,6 +328,7 @@ def main():
     total_score = round(sum(f["_score"] for f in cleaned), 2)
     grade = grade_from_score(total_score)
 
+    # ---------- risk_summary.json for dashboard ----------
     summary = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "score": total_score,
@@ -258,6 +346,7 @@ def main():
         json.dump(summary, sf, indent=2)
     print(f"Wrote: {summary_path}")
 
+    # Aggregations
     by_asset = defaultdict(lambda: {"score": 0.0, "count": 0})
     for f in cleaned:
         key = f.get("asset") or "—"
