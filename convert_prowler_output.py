@@ -1,35 +1,96 @@
-# convert_prowler_output.py
-# This script converts the newline-delimited prowler output into a single JSON array.
-
-from pathlib import Path
+#!/usr/bin/env python3
 import json
+from pathlib import Path
 
-# Find the newest prowler output file in the "output" folder
-outdir = Path("output")
-latest_files = sorted(outdir.glob("prowler-output-*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
-if not latest_files:
-    print("No prowler JSON files found in ./output/")
-    exit(1)
+REPORTS_DIR = Path("reports")
+RAW_FILE = REPORTS_DIR / "aws_scan.json"   # input: raw Prowler JSON
+OUT_FILE = REPORTS_DIR / "aws_scan.json"   # output: normalized list (same path)
 
-latest = latest_files[0]
-print(f"[*] Found prowler output: {latest.name}")
 
-# Convert JSON-Lines to JSON array
-items = []
-with latest.open(encoding="utf-8") as f:
-    for line in f:
-        line = line.strip()
-        if not line:
+def extract_records(raw):
+    if isinstance(raw, list):
+        return raw
+
+    if isinstance(raw, dict):
+        # Prowler usually returns a list at the top level, but just in case:
+        # look for the first list-valued field.
+        for v in raw.values():
+            if isinstance(v, list):
+                return v
+
+    # Fallback: nothing useful
+    return []
+
+
+def normalize_record(row):
+    """
+    Convert one raw Prowler row into our normalized finding dict.
+    """
+    check_id = (
+        row.get("CheckID")
+        or row.get("check_id")
+        or row.get("ControlID")
+        or row.get("control_id")
+    )
+
+    title = (
+        row.get("CheckTitle")
+        or row.get("check_title")
+        or row.get("Message")
+        or row.get("Description")
+        or ""
+    )
+
+    severity = (row.get("Severity") or row.get("severity") or "info").lower()
+
+    # Service field from Prowler; we intentionally do NOT put account or resource IDs.
+    service = row.get("Service") or row.get("ServiceName") or row.get("service")
+    if service:
+        service = str(service).lower()
+    else:
+        service = None
+
+    finding = {
+        "id": check_id,
+        "title": title,
+        "severity": severity,
+        "service": service,
+        # security choice: do NOT include account ID / resource ID
+        "asset": None,
+        "asset_criticality": 1.0,
+        "confidence": 1.0,
+        "source": "prowler",
+    }
+    return finding
+
+
+def main():
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    if not RAW_FILE.exists():
+        print(f"[!] Raw Prowler JSON not found at {RAW_FILE}")
+        return
+
+    try:
+        raw = json.loads(RAW_FILE.read_text())
+    except Exception as e:
+        print(f"[!] Failed to parse {RAW_FILE}: {e}")
+        return
+
+    records = extract_records(raw)
+    if not isinstance(records, list):
+        print("[!] Prowler data is not a list; nothing to normalize")
+        return
+
+    normalized = []
+    for row in records:
+        if not isinstance(row, dict):
             continue
-        try:
-            items.append(json.loads(line))
-        except json.JSONDecodeError:
-            pass
+        normalized.append(normalize_record(row))
 
-# Write normalized JSON to reports/aws_scan.json
-reports_dir = Path("reports")
-reports_dir.mkdir(exist_ok=True)
-output_file = reports_dir / "aws_scan.json"
-output_file.write_text(json.dumps(items, indent=2))
+    OUT_FILE.write_text(json.dumps(normalized, indent=2))
+    print(f"[+] Wrote normalized JSON array with {len(normalized)} findings to {OUT_FILE}")
 
-print(f"[+] Converted {len(items)} findings → {output_file}")
+
+if __name__ == "__main__":
+    main()
