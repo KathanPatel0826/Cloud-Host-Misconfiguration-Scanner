@@ -296,34 +296,53 @@ def attach_compliance(findings):
 # ----------------------------
 
 def normalize_ids_and_service(findings):
-    """
-    If findings come directly from Prowler JSON (with fields like CheckID, Service),
-    convert them into our normalized 'id' and 'service' fields.
-    """
     for f in findings:
-        # ID
+        # --------- ID normalisation ----------
         if not f.get("id"):
-            cid = (
-                f.get("CheckID")
-                or f.get("check_id")
-                or f.get("ControlID")
-                or f.get("control_id")
-            )
-            if cid:
-                f["id"] = cid
+            candidate_id = None
 
-        # Service – don't overwrite if already set (e.g. linux)
+            # Common explicit keys
+            for k in ("CheckID", "check_id", "ControlID", "control_id",
+                      "control", "control_name", "check"):
+                if k in f and f[k]:
+                    candidate_id = f[k]
+                    break
+
+            # Fallback: any key ending with "id"
+            if candidate_id is None:
+                for k, v in f.items():
+                    if (
+                        isinstance(v, str)
+                        and k.lower().endswith("id")
+                        and k.lower() not in ("accountid", "account_id")
+                    ):
+                        candidate_id = v
+                        break
+
+            if candidate_id:
+                f["id"] = candidate_id
+
+        # --------- Service normalisation ----------
         if not f.get("service"):
-            service = (
-                f.get("service")
-                or f.get("Service")
-                or f.get("ServiceName")
-                or f.get("service_name")
-            )
-            if service:
-                f["service"] = str(service).lower()
+            candidate_svc = None
+
+            # Common explicit keys
+            for k in ("service", "Service", "ServiceName", "service_name"):
+                if k in f and f[k]:
+                    candidate_svc = f[k]
+                    break
+
+            # Fallback: any key containing "service"
+            if candidate_svc is None:
+                for k, v in f.items():
+                    if "service" in k.lower() and v:
+                        candidate_svc = v
+                        break
+
+            if candidate_svc:
+                f["service"] = str(candidate_svc).lower()
             else:
-                # leave missing; template will show '—'
+                # leave missing; template will render '—'
                 f.pop("service", None)
 
 # ----------------------------
