@@ -292,6 +292,41 @@ def attach_compliance(findings):
         f["compliance"] = uniq
 
 # ----------------------------
+# Normalise raw Prowler-style fields (id + service)
+# ----------------------------
+
+def normalize_ids_and_service(findings):
+    """
+    If findings come directly from Prowler JSON (with fields like CheckID, Service),
+    convert them into our normalized 'id' and 'service' fields.
+    """
+    for f in findings:
+        # ID
+        if not f.get("id"):
+            cid = (
+                f.get("CheckID")
+                or f.get("check_id")
+                or f.get("ControlID")
+                or f.get("control_id")
+            )
+            if cid:
+                f["id"] = cid
+
+        # Service – don't overwrite if already set (e.g. linux)
+        if not f.get("service"):
+            service = (
+                f.get("service")
+                or f.get("Service")
+                or f.get("ServiceName")
+                or f.get("service_name")
+            )
+            if service:
+                f["service"] = str(service).lower()
+            else:
+                # leave missing; template will show '—'
+                f.pop("service", None)
+
+# ----------------------------
 # Scoring helpers
 # ----------------------------
 
@@ -327,6 +362,9 @@ def main():
 
     with open(args.infile, "r") as fh:
         findings = json.load(fh)
+
+    # 0) Normalise raw Prowler-style IDs and Service if needed
+    normalize_ids_and_service(findings)
 
     # 1) Fix Linux "Suggestion" titles
     patch_linux_titles(findings)
