@@ -37,10 +37,10 @@ HTML_TEMPLATE = r"""
   <meta charset="utf-8" />
   <title>Risk Report</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 24px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 16px; font-size: 13px; }
     h1,h2 { margin: 0 0 8px; }
     .muted { color: #666; }
-    .kpi { display:inline-block; margin-right:24px; padding:10px 14px; border:1px solid #eee; border-radius:12px; }
+    .kpi { display:inline-block; margin-right:16px; padding:8px 10px; border:1px solid #eee; border-radius:12px; }
     table { width:100%; border-collapse: collapse; margin-top:14px; }
     th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
     .badge { padding: 2px 8px; border-radius: 12px; font-size: 12px; }
