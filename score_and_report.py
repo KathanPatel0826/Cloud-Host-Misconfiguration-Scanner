@@ -68,7 +68,13 @@ HTML_TEMPLATE = r"""
   <div class="section">
     <h2>Severity Breakdown</h2>
     <table>
-      <thead><tr><th>Severity</th><th>Count</th><th>Weighted Score</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Severity</th>
+          <th>Count</th>
+          <th>Weighted Score</th>
+        </tr>
+      </thead>
       <tbody>
         {% for sev in ["critical","high","medium","low","info"] %}
           <tr>
@@ -100,7 +106,16 @@ HTML_TEMPLATE = r"""
   <div class="section">
     <h2>Top Critical Findings</h2>
     <table>
-      <thead><tr><th>Title</th><th>Severity</th><th>Asset</th><th>Service</th><th>Compliance</th><th>Score</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Severity</th>
+          <th>Asset</th>
+          <th>Service</th>
+          <th>Compliance</th>
+          <th>Score</th>
+        </tr>
+      </thead>
       <tbody>
         {% for f in top_findings %}
           <tr>
@@ -197,9 +212,14 @@ def get_lynis_descriptions():
 
 
 def patch_linux_titles(findings):
+    """
+    For Linux (kaliscanner) findings whose title is just 'Suggestion',
+    replace the title with the corresponding Lynis description.
+    """
     descs = get_lynis_descriptions()
     if not descs:
         return
+
     idx = 0
     for f in findings:
         if (
@@ -217,17 +237,17 @@ def patch_linux_titles(findings):
 
 COMPLIANCE_MAP_PATH = Path("compliance_map.yaml")
 
+
 def load_compliance_patterns():
     """
-    Flattens compliance_map.yaml into a list of (compiled_regex, [controls]).
-    Works for both exact IDs and regex keys.
+    Flatten compliance_map.yaml into a list of (compiled_regex, [controls]).
+    Keys in YAML can be exact IDs or regex patterns.
     """
-    patterns = []
     if not COMPLIANCE_MAP_PATH.exists():
-        return patterns
+        return []
 
     raw = yaml.safe_load(COMPLIANCE_MAP_PATH.read_text()) or {}
-    # raw is like { "prowler": { "rule_id": [..], "iam_password_policy_.*": [..] }, "lynis": { ... } }
+    patterns = []
     for section, rules in raw.items():
         if not isinstance(rules, dict):
             continue
@@ -235,16 +255,18 @@ def load_compliance_patterns():
             try:
                 regex = re.compile(key)
             except re.error:
+                # Treat invalid regexes as literal IDs
                 regex = re.compile(re.escape(key))
             patterns.append((regex, controls or []))
     return patterns
+
 
 COMPLIANCE_PATTERNS = load_compliance_patterns()
 
 
 def attach_compliance(findings):
     """
-    For each finding with an 'id', attach a list of mapped controls under 'compliance'.
+    Attach a 'compliance' list to each finding based on its id.
     """
     if not COMPLIANCE_PATTERNS:
         for f in findings:
@@ -258,13 +280,15 @@ def attach_compliance(findings):
             for regex, controls in COMPLIANCE_PATTERNS:
                 if regex.search(rid):
                     matches.extend(controls)
-        # dedupe while preserving order
+
+        # dedupe, keep order
         seen = set()
         uniq = []
         for c in matches:
             if c not in seen:
                 seen.add(c)
                 uniq.append(c)
+
         f["compliance"] = uniq
 
 # ----------------------------
@@ -304,10 +328,10 @@ def main():
     with open(args.infile, "r") as fh:
         findings = json.load(fh)
 
-    # 1) Fix Linux titles from Lynis
+    # 1) Fix Linux "Suggestion" titles
     patch_linux_titles(findings)
 
-    # 2) Attach compliance mapping
+    # 2) Attach compliance mappings based on compliance_map.yaml
     attach_compliance(findings)
 
     cleaned = []
