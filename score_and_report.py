@@ -194,7 +194,25 @@ def main():
 
     os.makedirs(args.outdir, exist_ok=True)
 
-    findings = json.loads(Path(args.infile).read_text())
+    raw = json.loads(Path(args.infile).read_text())
+
+    # Accept multiple input formats safely
+    # 1) list of finding dicts
+    # 2) dict containing findings under a key
+    if isinstance(raw, list):
+     findings = raw
+    elif isinstance(raw, dict):
+     for key in ("findings", "results", "items", "data"):
+        if key in raw and isinstance(raw[key], list):
+            findings = raw[key]
+            break
+    else:
+        findings = []
+else:
+    findings = []
+
+# Keep only valid finding dictionaries
+findings = [f for f in findings if isinstance(f, dict)]
 
     # Compute scores & severity breakdown
     cleaned = []
