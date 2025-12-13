@@ -3,7 +3,7 @@ import argparse
 import json
 import os
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from jinja2 import Template
 
@@ -168,18 +168,41 @@ HTML_TEMPLATE = r"""
 # Helpers
 # ----------------------------
 
-def score_finding(f):
+def score_finding(f: dict) -> float:
     sev = (f.get("severity") or "").lower().strip()
     w = SEVERITY_WEIGHT.get(sev, 0)
     ac = float(f.get("asset_criticality", 1.0))
     conf = float(f.get("confidence", 1.0))
     return round(w * ac * conf, 2)
 
-def grade_from_score(total):
+def grade_from_score(total: float) -> str:
     for letter, lo, hi in GRADE_THRESHOLDS:
         if lo <= total <= hi:
             return letter
     return "F"
+
+def normalize_input_findings(infile: str) -> list[dict]:
+    """
+    Accept multiple input formats:
+      1) list of findings (list[dict])
+      2) dict containing findings under common keys (findings/results/items/data)
+      3) any other structure -> []
+    """
+    raw = json.loads(Path(infile).read_text())
+
+    if isinstance(raw, list):
+        findings = raw
+    elif isinstance(raw, dict):
+        findings = []
+        for key in ("findings", "results", "items", "data"):
+            if key in raw and isinstance(raw[key], list):
+                findings = raw[key]
+                break
+    else:
+        findings = []
+
+    # Keep only dict findings
+    return [f for f in findings if isinstance(f, dict)]
 
 # ----------------------------
 # Main
@@ -194,27 +217,10 @@ def main():
 
     os.makedirs(args.outdir, exist_ok=True)
 
-raw = json.loads(Path(args.infile).read_text())
-
-if isinstance(raw, list):
-    findings = raw
-elif isinstance(raw, dict):
-    for key in ("findings", "results", "items", "data"):
-        if key in raw and isinstance(raw[key], list):
-            findings = raw[key]
-            break
-    else:
-        findings = []
-else:
-    findings = []
-
-findings = [f for f in findings if isinstance(f, dict)]
-
-# Keep only valid finding dictionaries
-findings = [f for f in findings if isinstance(f, dict)]
+    findings = normalize_input_findings(args.infile)
 
     # Compute scores & severity breakdown
-    cleaned = []
+    cleaned: list[dict] = []
     counts = Counter()
     weight_by_sev = defaultdict(float)
 
@@ -229,42 +235,60 @@ findings = [f for f in findings if isinstance(f, dict)]
         counts[sev] += 1
         weight_by_sev[sev] += f["_score"]
 
-    total_score = sum(f["_score"] for f in cleaned)
+    total_score = round(sum(f["_score"] for f in cleaned), 2)
     grade = grade_from_score(total_score)
 
     # Asset aggregation
-    by_asset = defaultdict(lambda: {"score": 0, "count": 0})
+    by_asset = defaultdict(lambda: {"score": 0.0, "count": 0})
     for f in cleaned:
         key = f.get("asset") or "—"
-        by_asset[key]["score"] += f["_score"]
+        by_asset[key]["score"] += float(f["_score"])
         by_asset[key]["count"] += 1
 
     assets_top = sorted(
-        [{"asset": k, "score": v["score"], "count": v["count"]} for k, v in by_asset.items()],
+        [{"asset": k, "score": round(v["score"], 2), "count": v["count"]} for k, v in by_asset.items()],
         key=lambda x: x["score"],
         reverse=True
     )[:10]
 
     top_findings = sorted(cleaned, key=lambda f: f["_score"], reverse=True)[:15]
 
+    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
     html = Template(HTML_TEMPLATE).render(
-        generated_at=datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        generated_at=generated_at,
         totals={"findings": len(cleaned), "score": total_score, "grade": grade},
-        breakdown={"counts": counts, "weights": weight_by_sev},
+        breakdown={"counts": counts, "weights": dict(weight_by_sev)},
         assets_top=assets_top,
         top_findings=top_findings,
         all_findings=cleaned,
         grading_text=""
     )
 
-    Path(f"{args.outdir}/risk_report.html").write_text(html)
-    print("Wrote: reports/risk_report.html")
+    # Write HTML
+    out_html = Path(args.outdir) / "risk_report.html"
+    out_html.write_text(html)
+    print(f"Wrote: {out_html}")
 
+    # Write summary JSON for dashboard ingestion
+    out_summary = Path(args.outdir) / "risk_summary.json"
+    summary_payload = {
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "score": total_score,
+        "grade": grade,
+        "total_findings": len(cleaned),
+        "counts": {k: int(counts.get(k, 0)) for k in ["critical", "high", "medium", "low", "info"]},
+    }
+    out_summary.write_text(json.dumps(summary_payload, indent=2))
+    print(f"Wrote: {out_summary}")
+
+    # Write PDF (optional)
     if args.pdf:
         try:
             from weasyprint import HTML
-            HTML(string=html).write_pdf(f"{args.outdir}/risk_report.pdf")
-            print("Wrote: reports/risk_report.pdf")
+            out_pdf = Path(args.outdir) / "risk_report.pdf"
+            HTML(string=html).write_pdf(str(out_pdf))
+            print(f"Wrote: {out_pdf}")
         except Exception as e:
             print("PDF generation failed:", e)
 
