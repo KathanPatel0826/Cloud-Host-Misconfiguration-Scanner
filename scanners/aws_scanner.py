@@ -15,9 +15,9 @@ def run_aws_scan():
 
     # Update -f / -p if your region or profile differs
     cmd = [
-        "prowler",
-        "-M", "json",
-        "-f", "us-east-2",
+        "prowler", "aws",
+        "--output-formats", "json-asff",
+        "--region", "us-east-2",
         "-p", "default",
         "-o", str(OUTPUT_DIR)
     ]
