@@ -2,25 +2,30 @@ pipeline {
   agent any
 
   environment {
-    // Risk policy
+    // Gate policy
     MAX_TOTAL_SCORE = '1000'
     MIN_PASS_GRADE  = 'F'
-    ENFORCE_GATE    = 'true'   // set to 'false' if you want to bypass the gate
+    ENFORCE_GATE    = 'true'   // set to 'false' to bypass the gate
 
-    // Paths
-    NORMALIZED_JSON = 'out/normalized_findings.json'
-    OUT_DIR         = 'out'
-    REPORT_HTML     = 'out/risk_report.html'
-    REPORT_PDF      = 'out/risk_report.pdf'
+    // Repo paths (YOUR PROJECT USES reports/)
+    REPORTS_DIR     = 'reports'
+    AWS_SCAN_JSON   = 'reports/aws_scan.json'
+    COMBINED_JSON   = 'reports/combined_findings.json'
+    REPORT_HTML     = 'reports/risk_report.html'
+    REPORT_PDF      = 'reports/risk_report.pdf'
+    SUMMARY_JSON    = 'reports/risk_summary.json'
+
+    // Dashboard backend (set to host IP if Jenkins is in Docker)
+    DASHBOARD_URL   = 'http://127.0.0.1:8088/ingest'
+    API_TOKEN       = 'MYTOKEN'
   }
 
   stages {
 
-    // One-time cleanup for old job parameters
     stage('Init (clear old params)') {
       steps {
         script {
-          properties([])   // ensures job is no longer parameterized
+          properties([])
           echo 'Cleared leftover job parameters.'
         }
       }
@@ -38,7 +43,7 @@ pipeline {
           python3 -m venv .venv || true
           . .venv/bin/activate
           pip install --upgrade pip
-          pip install jinja2 weasyprint || true
+          pip install jinja2 weasyprint requests || true
         '''
       }
     }
@@ -48,12 +53,18 @@ pipeline {
         sh '''
           . .venv/bin/activate
 
-          # TODO: keep your existing commands here.
-          # Example placeholder (replace with your real scan + normalize steps):
-          # python3 main.py --out out/raw_results
-          # python3 normalize.py --in out/raw_results --out out
+          # 1) Run scanners (AWS via Prowler + Linux via Lynis if applicable)
+          python3 main.py
 
-          # For your current setup, just leave whatever you already had in this stage.
+          # 2) Normalize Prowler output into reports/aws_scan.json
+          #    (your convert_prowler_output.py writes to reports/aws_scan.json)
+          python3 convert_prowler_output.py
+
+          # 3) Build combined findings list into reports/combined_findings.json
+          python3 -m utils.build_findings
+
+          echo "[+] Listing reports directory"
+          ls -lah reports || true
         '''
       }
     }
@@ -61,9 +72,10 @@ pipeline {
     stage('Precheck Inputs') {
       steps {
         sh '''
-          if [ ! -f "$NORMALIZED_JSON" ]; then
-            echo "ERROR: Missing $NORMALIZED_JSON. Ensure your normalization stage produced it."
-            ls -R
+          if [ ! -f "${COMBINED_JSON}" ]; then
+            echo "ERROR: Missing ${COMBINED_JSON}"
+            echo "reports/ directory:"
+            ls -lah reports || true
             exit 2
           fi
         '''
@@ -74,17 +86,19 @@ pipeline {
       steps {
         sh '''
           . .venv/bin/activate
-          python3 score_and_report.py --in "$NORMALIZED_JSON" --out "$OUT_DIR" --pdf || \
-          python3 score_and_report.py --in "$NORMALIZED_JSON" --out "$OUT_DIR"
+          python3 score_and_report.py --in "${COMBINED_JSON}" --out "${REPORTS_DIR}" --pdf || \
+          python3 score_and_report.py --in "${COMBINED_JSON}" --out "${REPORTS_DIR}"
+          echo "[+] Generated:"
+          ls -lah reports/risk_report.* reports/risk_summary.json || true
         '''
       }
     }
 
     stage('Publish Report') {
       steps {
-        archiveArtifacts artifacts: 'out/risk_report.*', fingerprint: true
+        archiveArtifacts artifacts: 'reports/risk_report.*', fingerprint: true
         publishHTML(target: [
-          reportDir: 'out',
+          reportDir: 'reports',
           reportFiles: 'risk_report.html',
           reportName: 'Risk Report',
           keepAll: true,
@@ -94,39 +108,39 @@ pipeline {
       }
     }
 
-    // NEW: push risk_summary.json to the Flask backend
     stage('Push to Dashboard') {
       when {
-        expression { return fileExists('out/risk_summary.json') }
+        expression { return fileExists(env.SUMMARY_JSON) }
       }
       steps {
-        script {
-          def backendUrl = 'http://192.168.31.128:8088/ingest'   // use the IP shown by server.py
-          def apiToken   = 'MYTOKEN'           // same as API_TOKEN in server.py
+        sh '''
+          . .venv/bin/activate
 
-          sh """
-            python3 - << 'EOF'
+          python3 - << 'EOF'
 import json, os
 
-summary_path = 'out/risk_summary.json'
+summary_path = "reports/risk_summary.json"
 with open(summary_path) as f:
     data = json.load(f)
 
-data['build_id'] = os.environ.get('BUILD_NUMBER')
-data['artifact_url'] = os.environ.get('BUILD_URL') + 'artifact/out/risk_report.html'
+data["build_id"] = os.environ.get("BUILD_NUMBER")
+data["job_name"] = os.environ.get("JOB_NAME")
+data["build_url"] = os.environ.get("BUILD_URL")
+data["artifact_url"] = (os.environ.get("BUILD_URL") or "") + "artifact/reports/risk_report.html"
 
-out_path = 'out/risk_summary_with_meta.json'
-with open(out_path, 'w') as f:
-    json.dump(data, f)
-print('Wrote', out_path)
+out_path = "reports/risk_summary_with_meta.json"
+with open(out_path, "w") as f:
+    json.dump(data, f, indent=2)
+print("Wrote", out_path)
 EOF
 
-            curl -sS -X POST ${backendUrl} \
-              -H "Content-Type: application/json" \
-              -H "X-API-KEY: ${apiToken}" \
-              --data @out/risk_summary_with_meta.json || echo "Dashboard push failed (non-fatal)"
-          """
-        }
+          echo "[+] Posting to dashboard: ${DASHBOARD_URL}"
+          curl -sS -X POST "${DASHBOARD_URL}" \
+            -H "Content-Type: application/json" \
+            -H "X-API-KEY: ${API_TOKEN}" \
+            --data @reports/risk_summary_with_meta.json \
+            || echo "Dashboard push failed (non-fatal)"
+        '''
       }
     }
 
@@ -134,42 +148,7 @@ EOF
       when { expression { return env.ENFORCE_GATE == 'true' } }
       steps {
         script {
+          // Read from risk_summary.json (more reliable than grepping HTML)
           def totalScore = sh(
-            script: "grep -o 'Total Risk Score</div><div><b>[^<]*' ${env.REPORT_HTML} | sed 's/.*<b>//'",
+            script: "python3 -c \"import json; print(json.load(open('reports/risk_summary.json'))['score'])\"",
             returnStdout: true
-          ).trim()
-
-          def grade = sh(
-            script: "grep -o 'Risk Grade</div><div class=\"grade\">[^<]*' ${env.REPORT_HTML} | sed 's/.*grade\">//'",
-            returnStdout: true
-          ).trim()
-
-          echo "Quality Gate => totalScore=${totalScore}, grade=${grade}"
-
-          def fail = false
-          if (totalScore?.isNumber() && totalScore.toFloat() > env.MAX_TOTAL_SCORE.toFloat()) {
-            echo "Gate breach: total score ${totalScore} > ${env.MAX_TOTAL_SCORE}"
-            fail = true
-          }
-          def rank = ['A':5,'B':4,'C':3,'D':2,'F':1]
-          if (rank.get(grade,1) < rank.get(env.MIN_PASS_GRADE,3)) {
-            echo "Gate breach: grade ${grade} worse than ${env.MIN_PASS_GRADE}"
-            fail = true
-          }
-
-          if (fail) {
-            error "Quality Gate failed."
-          } else {
-            echo "Quality Gate passed."
-          }
-        }
-      }
-    }
-  }
-
-  post {
-    always {
-      echo 'Pipeline finished (reports archived, pushed to dashboard, and gate evaluated).'
-    }
-  }
-}
