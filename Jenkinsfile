@@ -6,7 +6,7 @@ pipeline {
     INPUT_JSON      = 'reports/combined_summary.json'
     SUMMARY_JSON    = 'reports/risk_summary.json'
 
-    DASHBOARD_URL   = 'http://127.0.0.1:8088/ingest'
+    DASHBOARD_URL   = 'http://192.168.31.128:8088/ingest'
     API_TOKEN       = 'MYTOKEN'
 
     ENFORCE_GATE    = 'false' // keep false to avoid blocking your demo
@@ -100,6 +100,14 @@ pipeline {
       }
     }
   }
+   stage('Test Dashboard Connectivity') {
+  steps {
+    sh '''
+      curl -v http://<KALI_IP>:8088/health || true
+    '''
+  }
+}
+
 
   post {
     always { echo "Pipeline completed." }
