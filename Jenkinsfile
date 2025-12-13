@@ -103,7 +103,7 @@ pipeline {
    stage('Test Dashboard Connectivity') {
   steps {
     sh '''
-      curl -v http://<KALI_IP>:8088/health || true
+      curl -v http://192.168.31.128:8088/health || true
     '''
   }
 }
