@@ -1,22 +1,21 @@
 pipeline {
   agent any
 
-  environment {
-    REPORTS_DIR   = 'reports'
-    SUMMARY_IN    = 'reports/combined_summary.json'
-
-    REPORT_HTML   = 'reports/risk_report.html'
-    REPORT_PDF    = 'reports/risk_report.pdf'
-    RISK_SUMMARY  = 'reports/risk_summary.json'
-
-    // IMPORTANT: use the IP of the machine where server.py is running
-    // Do NOT use 127.0.0.1 unless server.py runs inside the same Jenkins node/container
-    BACKEND_URL   = 'http://192.168.31.128:8088/ingest'
-    API_TOKEN     = 'MYTOKEN'
-  }
-
   options {
     timestamps()
+    skipDefaultCheckout(true)
+  }
+
+  parameters {
+    string(name: 'AWS_PROFILE', defaultValue: 'default', description: 'AWS CLI profile for Prowler (if applicable)')
+    string(name: 'AWS_REGION',  defaultValue: 'us-east-2', description: 'AWS region for Prowler')
+    string(name: 'DASHBOARD_API_KEY', defaultValue: 'MYTOKEN', description: 'API key expected by dashboard backend')
+    string(name: 'DASHBOARD_URL', defaultValue: '', description: 'Optional override, e.g. http://host.docker.internal:8088/ingest')
+  }
+
+  environment {
+    VENV_DIR = ".venv"
+    REPORTS_DIR = "reports"
   }
 
   stages {
@@ -24,6 +23,7 @@ pipeline {
     stage('Checkout') {
       steps {
         checkout scm
+        sh 'git rev-parse --short HEAD'
       }
     }
 
@@ -31,8 +31,8 @@ pipeline {
       steps {
         sh '''
           set -e
-          python3 -m venv .venv
-          . .venv/bin/activate
+          python3 -m venv "${VENV_DIR}"
+          . "${VENV_DIR}/bin/activate"
           pip install --upgrade pip
           pip install jinja2 weasyprint requests pyyaml
         '''
@@ -41,33 +41,40 @@ pipeline {
 
     stage('Run Scanner (non-fatal)') {
       steps {
-        sh '''
-          set +e
-          . .venv/bin/activate
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          sh '''
+            set +e
+            . "${VENV_DIR}/bin/activate"
 
-          echo "=== Running scanner (non-fatal) ==="
-          python3 main.py
-          SCAN_RC=$?
+            # Pass region/profile as environment variables if your code uses them (optional)
+            export AWS_PROFILE="${AWS_PROFILE}"
+            export AWS_REGION="${AWS_REGION}"
 
-          echo "Scanner exit code: ${SCAN_RC} (continuing regardless)"
-          echo "[+] reports directory:"
-          ls -lah reports || true
+            python3 main.py
+            rc=$?
 
-          exit 0
-        '''
+            echo "[i] main.py exit code: $rc (non-fatal stage)"
+            exit 0
+          '''
+        }
       }
     }
 
-    stage('Precheck Input') {
+    stage('Build Findings') {
       steps {
         sh '''
           set -e
-          if [ ! -f "${SUMMARY_IN}" ]; then
-            echo "ERROR: Missing ${SUMMARY_IN}"
-            echo "reports directory:"
-            ls -lah reports || true
-            exit 2
-          fi
+          . "${VENV_DIR}/bin/activate"
+
+          mkdir -p "${REPORTS_DIR}"
+
+          # This should read reports/aws_scan.json + reports/lynis findings and produce combined_findings.json
+          python3 -m utils.build_findings
+
+          echo "[+] reports directory:"
+          ls -lah "${REPORTS_DIR}"
+
+          test -f "${REPORTS_DIR}/combined_findings.json"
         '''
       }
     }
@@ -76,86 +83,78 @@ pipeline {
       steps {
         sh '''
           set -e
-          . .venv/bin/activate
+          . "${VENV_DIR}/bin/activate"
 
-          echo "=== Generating risk report from ${SUMMARY_IN} ==="
-          python3 score_and_report.py --in "${SUMMARY_IN}" --out "${REPORTS_DIR}" --pdf
+          # IMPORTANT: Use combined_findings.json (not combined_summary.json)
+          python3 score_and_report.py \
+            --in "${REPORTS_DIR}/combined_findings.json" \
+            --out "${REPORTS_DIR}" \
+            --pdf
 
           echo "[+] Generated outputs:"
-          ls -lah "${REPORT_HTML}" "${REPORT_PDF}" "${RISK_SUMMARY}"
+          ls -lah "${REPORTS_DIR}/risk_report.html" "${REPORTS_DIR}/risk_report.pdf" "${REPORTS_DIR}/risk_summary.json"
         '''
       }
     }
 
     stage('Publish Report') {
       steps {
-        archiveArtifacts artifacts: 'reports/risk_report.* , reports/risk_summary.json', fingerprint: true
+        archiveArtifacts artifacts: 'reports/risk_report.html,reports/risk_report.pdf,reports/risk_summary.json,reports/combined_findings.json', fingerprint: true
 
         publishHTML(target: [
+          allowMissing: false,
+          alwaysLinkToLastBuild: true,
+          keepAll: true,
           reportDir: 'reports',
           reportFiles: 'risk_report.html',
-          reportName: 'Risk Report',
-          keepAll: true,
-          alwaysLinkToLastBuild: true,
-          allowMissing: false
+          reportName: 'Risk Report'
         ])
       }
     }
 
-    stage('Test Dashboard Connectivity') {
+    stage('Push to Dashboard (non-fatal)') {
       steps {
-        sh '''
-          set +e
-          echo "[*] Testing dashboard connectivity to: ${BACKEND_URL}"
-          curl -sS --max-time 3 -o /dev/null -w "HTTP=%{http_code}\n" "${BACKEND_URL}" || true
-          exit 0
-        '''
-      }
-    }
+        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+          sh '''
+            set +e
+            FILE="reports/risk_summary.json"
+            if [ ! -f "$FILE" ]; then
+              echo "[!] Missing $FILE - skipping dashboard push"
+              exit 0
+            fi
 
-    stage('Push to Dashboard') {
-      when {
-        expression { return fileExists("${env.RISK_SUMMARY}") }
-      }
-      steps {
-        sh '''
-          set +e
-          . .venv/bin/activate
+            # Jenkins is likely running in a container. 127.0.0.1 refers to the Jenkins container itself.
+            # We'll try:
+            #  - user override (DASHBOARD_URL)
+            #  - host.docker.internal (works on Docker Desktop; sometimes on Linux)
+            #  - 172.17.0.1 (common Docker bridge gateway on Linux)
+            if [ -n "${DASHBOARD_URL}" ]; then
+              CANDIDATES="${DASHBOARD_URL}"
+            else
+              CANDIDATES="http://host.docker.internal:8088/ingest http://172.17.0.1:8088/ingest"
+            fi
 
-          echo "[*] Preparing payload with Jenkins metadata..."
-          python3 - << 'EOF'
-import json, os
+            echo "[+] Dashboard URL candidates: $CANDIDATES"
 
-inp = os.environ["RISK_SUMMARY"]
-with open(inp, "r") as f:
-    data = json.load(f)
+            pushed=0
+            for url in $CANDIDATES; do
+              echo "[+] Trying dashboard push to: $url"
+              curl -sS --fail -X POST "$url" \
+                -H "Content-Type: application/json" \
+                -H "X-API-KEY: ${DASHBOARD_API_KEY}" \
+                --data @"$FILE" && pushed=1 && break
+              echo "[i] Push attempt failed for: $url"
+            done
 
-data["build_id"] = os.environ.get("BUILD_NUMBER")
-data["job_name"] = os.environ.get("JOB_NAME")
-data["build_url"] = os.environ.get("BUILD_URL")
-data["artifact_url"] = (os.environ.get("BUILD_URL","") + "artifact/reports/risk_report.html")
+            if [ "$pushed" -eq 1 ]; then
+              echo "[+] Dashboard push: SUCCESS"
+            else
+              echo "[!] Dashboard push failed for all candidates (non-fatal)"
+            fi
 
-outp = "reports/risk_summary_with_meta.json"
-with open(outp, "w") as f:
-    json.dump(data, f)
-print("Wrote", outp)
-EOF
-
-          echo "[+] Posting summary to dashboard: ${BACKEND_URL}"
-          curl -sS -X POST "${BACKEND_URL}" \
-            -H "Content-Type: application/json" \
-            -H "X-API-KEY: ${API_TOKEN}" \
-            --data @reports/risk_summary_with_meta.json
-
-          RC=$?
-          if [ $RC -ne 0 ]; then
-            echo "Dashboard push failed (non-fatal). curl rc=$RC"
-          else
-            echo "Dashboard push OK."
-          fi
-
-          exit 0
-        '''
+            exit 0
+          '''
+        }
       }
     }
   }
@@ -163,7 +162,6 @@ EOF
   post {
     always {
       echo 'Pipeline completed.'
-      sh 'ls -lah reports || true'
     }
   }
 }
