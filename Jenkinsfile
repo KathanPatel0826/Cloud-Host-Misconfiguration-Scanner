@@ -2,7 +2,6 @@ pipeline {
   agent any
 
   environment {
-    // Where your scripts write outputs (your project currently uses "reports/")
     REPORTS_DIR   = 'reports'
     SUMMARY_IN    = 'reports/combined_summary.json'
 
@@ -10,15 +9,14 @@ pipeline {
     REPORT_PDF    = 'reports/risk_report.pdf'
     RISK_SUMMARY  = 'reports/risk_summary.json'
 
-    // Dashboard backend (MUST be reachable from the Jenkins runtime)
-    // Do NOT use 127.0.0.1 unless the Flask server is running inside the SAME Jenkins container/node.
+    // IMPORTANT: use the IP of the machine where server.py is running
+    // Do NOT use 127.0.0.1 unless server.py runs inside the same Jenkins node/container
     BACKEND_URL   = 'http://192.168.31.128:8088/ingest'
     API_TOKEN     = 'MYTOKEN'
   }
 
   options {
     timestamps()
-    ansiColor('xterm')
   }
 
   stages {
@@ -109,7 +107,6 @@ pipeline {
         sh '''
           set +e
           echo "[*] Testing dashboard connectivity to: ${BACKEND_URL}"
-          # Just a quick TCP/HTTP check. If it fails, we still continue (non-fatal).
           curl -sS --max-time 3 -o /dev/null -w "HTTP=%{http_code}\n" "${BACKEND_URL}" || true
           exit 0
         '''
@@ -136,7 +133,7 @@ with open(inp, "r") as f:
 data["build_id"] = os.environ.get("BUILD_NUMBER")
 data["job_name"] = os.environ.get("JOB_NAME")
 data["build_url"] = os.environ.get("BUILD_URL")
-data["artifact_url"] = os.environ.get("BUILD_URL", "") + "artifact/reports/risk_report.html"
+data["artifact_url"] = (os.environ.get("BUILD_URL","") + "artifact/reports/risk_report.html")
 
 outp = "reports/risk_summary_with_meta.json"
 with open(outp, "w") as f:
